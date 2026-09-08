@@ -311,3 +311,73 @@ describe("companies funding", () => {
     expect(run.requests).toHaveLength(0);
   });
 });
+
+describe("companies prices", () => {
+  const series = {
+    company: "Anthropic",
+    slug: "anthropic",
+    points: [
+      { date: "2026-09-04", institutionalPrice: 263, retailPrice: 330 },
+      { date: "2026-09-08", institutionalPrice: 270.5, retailPrice: null },
+    ],
+  };
+
+  test("requests the daily-prices path with no query by default", async () => {
+    const run = await runCli(["companies", "prices", "anthropic"], { body: series });
+    expectOk(run);
+    const request = run.stub.only();
+    expect(request.path).toBe("/v1/partner/companies/anthropic/daily-prices");
+    expect(request.query).toEqual({});
+  });
+
+  test("maps --from/--to/--limit onto the query", async () => {
+    const run = await runCli(
+      ["companies", "prices", "anthropic", "--from", "2026-09-01", "--to", "2026-09-30", "--limit", "5"],
+      { body: series },
+    );
+    expectOk(run);
+    expect(run.stub.only().query).toEqual({ from: ["2026-09-01"], to: ["2026-09-30"], limit: ["5"] });
+  });
+
+  test("tabulates both tiers, oldest first, null as a dash", async () => {
+    const stdout = expectOk(await runCli(["companies", "prices", "anthropic"], { body: series }));
+    const lines = stdout.split("\n");
+    expect(lines.find((l) => l.startsWith("DATE"))).toMatch(/INSTITUTIONAL\s+RETAIL/);
+    const first = lines.find((l) => l.startsWith("2026-09-04"))!;
+    const last = lines.find((l) => l.startsWith("2026-09-08"))!;
+    expect(first).toContain("$263");
+    expect(first).toContain("$330");
+    expect(last).toContain("$270.5");
+    expect(last).toContain("—");
+    expect(lines.indexOf(first)).toBeLessThan(lines.indexOf(last));
+    expect(stdout).toContain("2 days");
+  });
+
+  test("an empty series is not an error", async () => {
+    const stdout = expectOk(
+      await runCli(["companies", "prices", "quiet-co"], { body: { company: "Quiet Co", slug: "quiet-co", points: [] } }),
+    );
+    expect(stdout).toContain("no daily prices published");
+  });
+
+  test("rejects a malformed day and an out-of-range limit before any request", async () => {
+    const bad = await runCli(["companies", "prices", "anthropic", "--from", "yesterday"], { body: series });
+    expect(bad.exitCode).toBe(64);
+    expect(bad.stderr).toContain("--from must be a day as YYYY-MM-DD");
+    expect(bad.requests).toHaveLength(0);
+    const big = await runCli(["companies", "prices", "anthropic", "--limit", "5000"], { body: series });
+    expect(big.exitCode).toBe(64);
+    expect(big.requests).toHaveLength(0);
+  });
+
+  test("needs a slug", async () => {
+    const run = await runCli(["companies", "prices"], { body: series });
+    expect(run.exitCode).toBe(64);
+    expect(run.stderr).toContain("Missing <slug>");
+  });
+
+  test("--csv emits raw numbers", async () => {
+    const stdout = expectOk(await runCli(["companies", "prices", "anthropic", "--csv"], { body: series }));
+    expect(stdout).toContain("2026-09-04,263,330");
+  });
+});

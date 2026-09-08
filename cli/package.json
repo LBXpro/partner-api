@@ -1,6 +1,6 @@
 {
   "name": "@lbx/partner-cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Command-line client for the LBX Partner API",
   "type": "module",
   "bin": { "lbx": "./bin/lbx.ts" },

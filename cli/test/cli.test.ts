@@ -29,6 +29,7 @@ describe("resolveCommand", () => {
     expect(commandGroups()).toEqual([
       "ping",
       "companies",
+      "prices",
       "indexes",
       "opportunities",
       "orders",
@@ -41,7 +42,8 @@ describe("resolveCommand", () => {
 describe("command definitions", () => {
   test("every command that renders a table is marked tabular, and only those", async () => {
     const expected = [
-      "companies list", "companies charts", "companies funding",
+      "companies list", "companies charts", "companies funding", "companies prices",
+      "prices",
       "indexes list", "indexes history",
       "opportunities list",
       "orders list", "orders documents",

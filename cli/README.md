@@ -61,6 +61,8 @@ lbx ping --timeout 5     # per-request budget in seconds (default 30, 0 disables
 | `lbx companies get <slug>` | Company detail |
 | `lbx companies charts <slug>` | 24-month pricing series, plus that window's funding rounds |
 | `lbx companies funding <slug>` | All funding rounds |
+| `lbx companies prices <slug> [--from d] [--to d] [--limit n]` | Daily institutional and retail prices, oldest first |
+| `lbx prices [--date d]` | Every priced company on one day (default: the latest day with prices) |
 | `lbx indexes list` | Indexes with level and performance |
 | `lbx indexes history <id> [--months n]` | Index level over time (`lbx25`, or an id) |
 | `lbx opportunities list` | Public offers, with an `ORDERABLE` column |
@@ -94,6 +96,20 @@ for a union. `--limit` is capped at 200 by the API and checked locally first.
 `--no-in-lbx25` sends `inLBX25=false`, which the API accepts but does not yet
 filter on (it returns the full catalog); it will exclude constituents once
 the API honours it.
+
+### Daily prices
+
+```sh
+lbx prices                                     # every priced company, latest day
+lbx prices --date 2026-09-04                   # a specific day (UTC)
+lbx companies prices anthropic --from 2026-09-01 --limit 30
+lbx companies prices anthropic --csv > anthropic-prices.csv
+```
+
+Days are UTC calendar dates (`YYYY-MM-DD`) and are checked locally before any
+request. Daily prices cover a subset of the catalog that grows over time; a
+company without them prints an empty table, not an error. For a daily sync,
+`lbx prices` is one call instead of one per company.
 
 ### Placing an order
 

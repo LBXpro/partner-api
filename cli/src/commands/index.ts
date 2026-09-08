@@ -5,10 +5,12 @@ import { miscCommands } from "./misc.ts";
 import { opportunityCommands } from "./opportunities.ts";
 import { orderCommands } from "./orders.ts";
 import { portfolioCommands } from "./portfolio.ts";
+import { priceCommands } from "./prices.ts";
 
 export const commands: readonly Command[] = [
   ...miscCommands,
   ...companyCommands,
+  ...priceCommands,
   ...indexCommands,
   ...opportunityCommands,
   ...orderCommands,

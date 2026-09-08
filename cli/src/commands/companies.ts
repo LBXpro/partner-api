@@ -1,4 +1,4 @@
-import { getBoolean, getInteger, getList, getNumber, getString } from "../args.ts";
+import { getBoolean, getInteger, getList, getNumber, getString, kebab } from "../args.ts";
 import type { Command } from "../command.ts";
 import { UsageError } from "../errors.ts";
 import {
@@ -262,4 +262,73 @@ const funding: Command = {
   },
 };
 
-export const companyCommands: Command[] = [list, get, charts, funding];
+interface DailyPricePoint {
+  date: string;
+  institutionalPrice: number | null;
+  retailPrice: number | null;
+}
+
+const DAY = /^\d{4}-\d{2}-\d{2}$/;
+
+/** Checked locally so a typo is a usage error, not a round-trip. */
+export function requireDay(flags: Parameters<typeof getString>[0], name: string): string | undefined {
+  const value = getString(flags, name);
+  if (value !== undefined && !DAY.test(value)) {
+    throw new UsageError(`--${kebab(name)} must be a day as YYYY-MM-DD, got "${value}"`);
+  }
+  return value;
+}
+
+const prices: Command = {
+  path: ["companies", "prices"],
+  summary: "Daily prices (institutional + retail) for a company, oldest first",
+  usage: "lbx companies prices <slug> [--from <day>] [--to <day>] [--limit <n>]",
+  tabular: true,
+  options: [
+    ["--from <YYYY-MM-DD>", "Inclusive start day (UTC)"],
+    ["--to <YYYY-MM-DD>", "Inclusive end day (UTC)"],
+    ["--limit <n>", "Most recent N days within the range, max 2000 (default 365)"],
+  ],
+  async run({ client, args, flags }): Promise<CommandResult<DailyPricePoint>> {
+    const slug = requireArg(args, 0, "slug", prices.usage);
+    const from = requireDay(flags, "from");
+    const to = requireDay(flags, "to");
+    const limit = getInteger(flags, "limit");
+    if (limit !== undefined && (limit < 1 || limit > 2000)) {
+      throw new UsageError("--limit must be between 1 and 2000");
+    }
+    const data = await client.get<{ company?: string; slug?: string; points?: DailyPricePoint[] }>(
+      `/v1/partner/companies/${encodeURIComponent(slug)}/daily-prices`,
+      { from, to, limit },
+    );
+    const points = data.points ?? [];
+    return {
+      data,
+      table: {
+        title: `${data.company ?? slug} — daily prices`,
+        columns: [
+          { header: "DATE", value: (row) => row.date },
+          {
+            header: "INSTITUTIONAL",
+            value: (row) => formatMoney(row.institutionalPrice),
+            raw: (row) => row.institutionalPrice,
+            align: "right",
+          },
+          {
+            header: "RETAIL",
+            value: (row) => formatMoney(row.retailPrice),
+            raw: (row) => row.retailPrice,
+            align: "right",
+          },
+        ],
+        rows: points,
+        footer:
+          points.length === 0
+            ? "no daily prices published for this company yet"
+            : `${points.length} day${points.length === 1 ? "" : "s"}`,
+      },
+    };
+  },
+};
+
+export const companyCommands: Command[] = [list, get, charts, funding, prices];
