@@ -1,0 +1,4113 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "LBX Partner API",
+    "version": "0.1.0",
+    "description": "Market data, opportunities and order placement for LBX partners. Authenticate every request with `Authorization: Bearer <partner key>`. Orders are placed for the partner’s own investor account (nominee model) and go through the same eligibility, signing and settlement flow as the LBX investor app."
+  },
+  "servers": [
+    {
+      "url": "https://api-staging.lbxpro.tech",
+      "description": "staging"
+    }
+  ],
+  "security": [
+    {
+      "partnerKey": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "partner",
+      "description": "Partner API"
+    }
+  ],
+  "paths": {
+    "/v1/partner/companies": {
+      "get": {
+        "operationId": "partnerListCompanies",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Company catalog (paginated, filterable)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "required": false,
+            "name": "search",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "description": "One or more industry names. Repeat the param for multiple."
+            },
+            "required": false,
+            "description": "One or more industry names. Repeat the param for multiple.",
+            "name": "industry",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "liquid",
+                "semi-liquid"
+              ]
+            },
+            "required": false,
+            "name": "cohort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ],
+              "description": "true = LBX25 constituents only; false = exclude constituents"
+            },
+            "required": false,
+            "description": "true = LBX25 constituents only; false = exclude constituents",
+            "name": "inLBX25",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "required": false,
+            "name": "minSecondaryPremium",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "required": false,
+            "name": "maxSecondaryPremium",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ],
+              "description": "Min lastPrimaryValuation in USD"
+            },
+            "required": false,
+            "description": "Min lastPrimaryValuation in USD",
+            "name": "minValuation",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "required": false,
+            "name": "maxValuation",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "required": false,
+            "name": "minActivityScore",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "required": false,
+            "name": "maxActivityScore",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "description": "Min lastRoundDate (ISO 8601)"
+            },
+            "required": false,
+            "description": "Min lastRoundDate (ISO 8601)",
+            "name": "dateFrom",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "required": false,
+            "name": "dateTo",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "activityScore",
+                "activityRanking",
+                "launchbayPricePerShare",
+                "impliedValuation",
+                "secondaryPremium",
+                "lastRoundDate",
+                "threeMonthReturn",
+                "oneYearReturn",
+                "lastAverageSecondarySpread",
+                "companyName"
+              ],
+              "description": "Sort field. Default: lastRoundDate."
+            },
+            "required": false,
+            "description": "Sort field. Default: lastRoundDate.",
+            "name": "sortBy",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "description": "Sort direction. Default: desc."
+            },
+            "required": false,
+            "description": "Sort direction. Default: desc.",
+            "name": "sortOrder",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Companies",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/companies/{slug}": {
+      "get": {
+        "operationId": "partnerGetCompany",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Company detail with embedded 12-month pricing + activity history",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "anthropic"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Company",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/companies/{slug}/charts": {
+      "get": {
+        "operationId": "partnerGetCompanyCharts",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Pricing history (24 months) + funding rounds",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "anthropic"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chart series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyChartsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/companies/{slug}/funding": {
+      "get": {
+        "operationId": "partnerGetCompanyFunding",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "All funding rounds for a company",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "anthropic"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Funding rounds",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyFundingResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/companies/{slug}/daily-prices": {
+      "get": {
+        "operationId": "partnerGetCompanyDailyPrices",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Daily prices (institutional + retail) for a company",
+        "description": "One point per pricing day, ascending. Filter with `from`/`to` (inclusive, UTC days); `limit` keeps the most recent N days of the range. A company with no daily prices returns an empty series.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "anthropic"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "example": "2026-09-01",
+              "description": "Inclusive start day (UTC, YYYY-MM-DD)"
+            },
+            "required": false,
+            "description": "Inclusive start day (UTC, YYYY-MM-DD)",
+            "name": "from",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "example": "2026-09-30",
+              "description": "Inclusive end day (UTC, YYYY-MM-DD)"
+            },
+            "required": false,
+            "description": "Inclusive end day (UTC, YYYY-MM-DD)",
+            "name": "to",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000,
+              "description": "Most recent N days within the range (1-2000). Default 365."
+            },
+            "required": false,
+            "description": "Most recent N days within the range (1-2000). Default 365.",
+            "name": "limit",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Daily price series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CompanyDailyPricesResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/daily-prices": {
+      "get": {
+        "operationId": "partnerListDailyPrices",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Daily prices for every priced company on one day",
+        "description": "Bulk snapshot: every company that has a price on `date` (default: the latest day with prices). Use this for a daily pull instead of one call per company.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "example": "2026-09-08",
+              "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest day that has prices."
+            },
+            "required": false,
+            "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest day that has prices.",
+            "name": "date",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Prices for the day",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DailyPricesListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad query",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/indexes": {
+      "get": {
+        "operationId": "partnerListIndexes",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "LBX indexes with current metrics",
+        "responses": {
+          "200": {
+            "description": "Indexes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/indexes/{id}/history": {
+      "get": {
+        "operationId": "partnerGetIndexHistory",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Index level history",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "lbx25"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 120,
+              "description": "Months of history (1-120). Default 12."
+            },
+            "required": false,
+            "description": "Months of history (1-120). Default 12.",
+            "name": "months",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "History",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndexHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/opportunities": {
+      "get": {
+        "operationId": "partnerListOpportunities",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Active, publicly visible opportunities",
+        "responses": {
+          "200": {
+            "description": "Opportunities",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOpportunityListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/opportunities/{slug}": {
+      "get": {
+        "operationId": "partnerGetOpportunity",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Opportunity detail",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "example": "crusoe"
+            },
+            "required": true,
+            "name": "slug",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opportunity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOpportunityDetailResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders": {
+      "post": {
+        "operationId": "partnerCreateOrder",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Place an order (returns a one-shot signing URL)",
+        "description": "Places an order for the partner’s investor account against a tokenized opportunity and mints the prospectus signing envelope. Send an `Idempotency-Key` header (any string unique per order attempt) to make retries safe: a repeat with the same key returns the original order instead of creating a second one.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 200
+            },
+            "required": false,
+            "name": "idempotency-key",
+            "in": "header"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerOrderCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order created (or the existing order for a repeated Idempotency-Key)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (offer closed, minimum, fees unset, …)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Partner account not eligible (suspended, not accredited, not registered)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "502": {
+            "description": "Upstream failure",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "operationId": "partnerListOrders",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "All orders on the partner account, newest first",
+        "responses": {
+          "200": {
+            "description": "Orders",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}": {
+      "get": {
+        "operationId": "partnerGetOrder",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Order status + economics (poll this)",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/confirm-signing": {
+      "post": {
+        "operationId": "partnerConfirmOrderSigning",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Confirm the prospectus is signed; advances to awaiting_payment",
+        "description": "Call after the signatory completes the DocuSign envelope. Idempotent. Returns 400 \"Documents not signed yet\" if called too early — retry after signing.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Order (documents_signed → awaiting_payment)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not signed yet / wrong status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/resume-signing": {
+      "post": {
+        "operationId": "partnerResumeOrderSigning",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Re-issue the signing URL for an order still awaiting signature",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PartnerSigningRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Order with a fresh signingUrl",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Order not awaiting signature",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/cancel": {
+      "post": {
+        "operationId": "partnerCancelOrder",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Cancel an unpaid order",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCancelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Not cancellable from its current status",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/opportunity-documents": {
+      "get": {
+        "operationId": "partnerListOrderOpportunityDocuments",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "The offer’s legal documents (references) for an order",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document references",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerOrderOpportunityDocuments"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/opportunity-document": {
+      "get": {
+        "operationId": "partnerGetOrderOpportunityDocumentUrl",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Short-lived download URL for one legal document",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "key",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Presigned URL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PresignedUrl"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Partner account not identity-verified",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/orders/{id}/documents/{docUid}": {
+      "get": {
+        "operationId": "partnerDownloadOrderDocument",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Download a settlement document (signed prospectus, receipt)",
+        "description": "Document ids come from the order’s `settlementDocuments` array, populated once the custody platform issues them.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "docUid",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file (streamed)",
+            "content": {
+              "application/pdf": {
+                "schema": {}
+              }
+            }
+          },
+          "400": {
+            "description": "Order has no custody-side documents yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/portfolio": {
+      "get": {
+        "operationId": "partnerGetPortfolio",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Holdings (per position + grouped per offer) with live valuation and a summary",
+        "responses": {
+          "200": {
+            "description": "Portfolio",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerPortfolio"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/portfolio/history": {
+      "get": {
+        "operationId": "partnerGetPortfolioHistory",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Portfolio value over time",
+        "responses": {
+          "200": {
+            "description": "Value series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortfolioHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/partner/positions/{id}/history": {
+      "get": {
+        "operationId": "partnerGetPositionHistory",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "One position’s value over time",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Value series",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PositionHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ActivityHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "quarter": {
+            "type": "string"
+          },
+          "activityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "quarter",
+          "activityScore"
+        ]
+      },
+      "ChartFundingPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "round": {
+            "type": "string"
+          },
+          "size": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "valuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pps": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "round",
+          "size",
+          "valuation",
+          "pps"
+        ]
+      },
+      "ChartPricingPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "price": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "valuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "premium": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "price",
+          "valuation",
+          "premium"
+        ]
+      },
+      "CompanyChartsResponse": {
+        "type": "object",
+        "properties": {
+          "pricingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartPricingPoint"
+            }
+          },
+          "fundingRounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChartFundingPoint"
+            }
+          }
+        },
+        "required": [
+          "pricingHistory",
+          "fundingRounds"
+        ]
+      },
+      "CompanyCohort": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "liquid",
+          "semi-liquid",
+          null
+        ]
+      },
+      "CompanyDailyPricesResponse": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyPricePoint"
+            },
+            "description": "Ascending by date"
+          }
+        },
+        "required": [
+          "company",
+          "slug",
+          "points"
+        ]
+      },
+      "CompanyDetail": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "industrySlug": {
+            "type": "string"
+          },
+          "vertical": {
+            "type": "string"
+          },
+          "cohort": {
+            "$ref": "#/components/schemas/CompanyCohort"
+          },
+          "inLBX25": {
+            "type": "boolean"
+          },
+          "launchbayPrice": {
+            "type": "number"
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "secondaryPremium": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastBidShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastAskShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastAverageSecondarySpread": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityRanking": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityRankingChange": {
+            "$ref": "#/components/schemas/RankingChange"
+          },
+          "threeMonthReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "oneYearReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ipoStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "yearOfIPO": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "lastRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastRoundDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domainName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pricingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PricingHistoryPoint"
+            }
+          },
+          "activityHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ActivityHistoryPoint"
+            }
+          },
+          "leo": {
+            "$ref": "#/components/schemas/LeoStarterPack"
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "industry",
+          "vertical",
+          "cohort",
+          "inLBX25",
+          "launchbayPrice",
+          "impliedValuation",
+          "secondaryPremium",
+          "lastBidShare",
+          "lastAskShare",
+          "lastAverageSecondarySpread",
+          "activityScore",
+          "activityRanking",
+          "activityRankingChange",
+          "threeMonthReturn",
+          "oneYearReturn",
+          "ipoStatus",
+          "yearOfIPO",
+          "lastRound",
+          "lastRoundDate",
+          "domainName",
+          "pricingHistory",
+          "activityHistory"
+        ]
+      },
+      "CompanyDetailResponse": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "$ref": "#/components/schemas/CompanyDetail"
+          }
+        },
+        "required": [
+          "company"
+        ]
+      },
+      "CompanyFundingResponse": {
+        "type": "object",
+        "properties": {
+          "company": {
+            "type": "string"
+          },
+          "rounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FundingRound"
+            }
+          }
+        },
+        "required": [
+          "company",
+          "rounds"
+        ]
+      },
+      "CompanyListItem": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "platformId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "industrySlug": {
+            "type": "string"
+          },
+          "vertical": {
+            "type": "string"
+          },
+          "cohort": {
+            "$ref": "#/components/schemas/CompanyCohort"
+          },
+          "inLBX25": {
+            "type": "boolean"
+          },
+          "launchbayPrice": {
+            "type": "number"
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "secondaryPremium": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityRanking": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityRankingChange": {
+            "$ref": "#/components/schemas/RankingChange"
+          },
+          "threeMonthReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "oneYearReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "hideFromReturnRanking": {
+            "type": "boolean"
+          },
+          "lastRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastRoundDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastPrimaryValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "platformId",
+          "name",
+          "industry",
+          "vertical",
+          "cohort",
+          "inLBX25",
+          "launchbayPrice",
+          "impliedValuation",
+          "secondaryPremium",
+          "activityScore",
+          "activityRanking",
+          "activityRankingChange",
+          "threeMonthReturn",
+          "oneYearReturn",
+          "hideFromReturnRanking",
+          "lastRound",
+          "lastRoundDate",
+          "lastPrimaryValuation"
+        ]
+      },
+      "CompanyListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CompanyListItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ]
+      },
+      "DailyPriceListItem": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "company": {
+            "type": "string"
+          },
+          "institutionalPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "retailPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "company",
+          "institutionalPrice",
+          "retailPrice"
+        ]
+      },
+      "DailyPricePoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-09-08",
+            "description": "Pricing day (UTC, YYYY-MM-DD)"
+          },
+          "institutionalPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "retailPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "institutionalPrice",
+          "retailPrice"
+        ]
+      },
+      "DailyPricesListResponse": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The pricing day served; null when no prices exist yet"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyPriceListItem"
+            },
+            "description": "Sorted by company name"
+          }
+        },
+        "required": [
+          "date",
+          "items"
+        ]
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Resource not found"
+          },
+          "code": {
+            "type": "string",
+            "example": "NOT_FOUND"
+          },
+          "details": {}
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "FundingRound": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "round": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roundSize": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "valuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "round",
+          "roundSize",
+          "valuation",
+          "pricePerShare"
+        ]
+      },
+      "IndexHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "value": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "value"
+        ]
+      },
+      "IndexHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "indexName": {
+            "type": "string"
+          },
+          "history": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexHistoryPoint"
+            }
+          }
+        },
+        "required": [
+          "indexName",
+          "history"
+        ]
+      },
+      "IndexItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "indexName": {
+            "type": "string"
+          },
+          "indexType": {
+            "type": "string"
+          },
+          "currentValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "previousLevel": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "initialValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "initialDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "portfolioDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "marketCap": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "totalHoldings": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "oneMonthPerformance": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "threeMonthPerformance": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "oneYearPerformance": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fiftyTwoWeeksLow": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "fiftyTwoWeeksHigh": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "indexName",
+          "indexType",
+          "currentValue",
+          "previousLevel",
+          "initialValue",
+          "initialDate",
+          "portfolioDate",
+          "marketCap",
+          "totalHoldings",
+          "oneMonthPerformance",
+          "threeMonthPerformance",
+          "oneYearPerformance",
+          "fiftyTwoWeeksLow",
+          "fiftyTwoWeeksHigh",
+          "activityShare"
+        ]
+      },
+      "IndexListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IndexItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "LeoStarterPack": {
+        "type": "object",
+        "properties": {
+          "starters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeoSuggestion"
+            }
+          },
+          "version": {
+            "type": "integer",
+            "exclusiveMinimum": 0
+          },
+          "updatedAt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "strategy": {
+            "$ref": "#/components/schemas/LeoStarterStrategy"
+          }
+        },
+        "required": [
+          "starters",
+          "version",
+          "updatedAt",
+          "strategy"
+        ]
+      },
+      "LeoStarterStrategy": {
+        "type": "string",
+        "enum": [
+          "manual",
+          "template"
+        ]
+      },
+      "LeoSuggestion": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 60
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 140
+          }
+        },
+        "required": [
+          "label",
+          "prompt"
+        ]
+      },
+      "OfferBody": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "lede": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "vehicle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "thesis": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "facts": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "lede",
+          "vehicle",
+          "thesis",
+          "facts"
+        ]
+      },
+      "OfferEconomics": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "subscriptionPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "minInvestment": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "maxInvestment": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tokenIssueFeePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeeYears": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "subscriptionCommencementDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscriptionDeadline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "investorDeadline": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "forQualifiedOnly": {
+            "type": "boolean"
+          },
+          "allocation": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "remaining": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "soldPct": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "total",
+              "remaining",
+              "soldPct"
+            ]
+          },
+          "displayStatus": {
+            "type": "string",
+            "enum": [
+              "coming_soon",
+              "active",
+              "fully_subscribed",
+              "closed"
+            ]
+          }
+        },
+        "required": [
+          "subscriptionPrice",
+          "minInvestment",
+          "maxInvestment",
+          "tokenIssueFeePct",
+          "adminFeePct",
+          "adminFeeYears",
+          "subscriptionCommencementDate",
+          "subscriptionDeadline",
+          "investorDeadline",
+          "forQualifiedOnly",
+          "allocation",
+          "displayStatus"
+        ]
+      },
+      "OpportunityActivityPoint": {
+        "type": "object",
+        "properties": {
+          "quarter": {
+            "type": "string"
+          },
+          "activityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "quarter",
+          "activityScore"
+        ]
+      },
+      "OpportunityCompanyMetrics": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "industry": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "domainName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "smallLogo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "cohort": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "liquid",
+              "semi-liquid",
+              null
+            ]
+          },
+          "launchbayIndexStatus": {
+            "type": "boolean"
+          },
+          "launchbayPricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "secondaryPremium": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuationMonthlyChange": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastPrimaryValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastPrimaryPPS": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lastRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastRoundDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "activityScore": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "activityRanking": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "threeMonthReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "oneYearReturn": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ipoStatus": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "estimatedIPOValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "industry",
+          "domainName",
+          "smallLogo",
+          "cohort",
+          "launchbayIndexStatus",
+          "launchbayPricePerShare",
+          "impliedValuation",
+          "secondaryPremium",
+          "impliedValuationMonthlyChange",
+          "lastPrimaryValuation",
+          "lastPrimaryPPS",
+          "lastRound",
+          "lastRoundDate",
+          "activityScore",
+          "activityRanking",
+          "threeMonthReturn",
+          "oneYearReturn",
+          "ipoStatus",
+          "estimatedIPOValuation"
+        ]
+      },
+      "OpportunityFundingRound": {
+        "type": "object",
+        "properties": {
+          "roundDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "fundingRound": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "roundSize": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "roundValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "roundPricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "roundDate",
+          "fundingRound",
+          "roundSize",
+          "roundValuation",
+          "roundPricePerShare"
+        ]
+      },
+      "OpportunityHolding": {
+        "type": "object",
+        "properties": {
+          "platformId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subscriptionPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "sharePercent": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "domainName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "smallLogo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deepDiveUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "sharesPerToken": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "platformId",
+          "name",
+          "slug",
+          "subscriptionPrice",
+          "sharePercent",
+          "impliedValuation",
+          "domainName",
+          "smallLogo",
+          "deepDiveUrl",
+          "sharesPerToken"
+        ]
+      },
+      "OpportunityLegalDocument": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "size": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "key",
+          "title",
+          "size"
+        ]
+      },
+      "OpportunityPortfolio": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "structure": {
+            "type": "string"
+          },
+          "thesis": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "holdingsCount": {
+            "type": "integer"
+          },
+          "holdings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityHolding"
+            }
+          }
+        },
+        "default": null,
+        "required": [
+          "structure",
+          "thesis",
+          "holdingsCount",
+          "holdings"
+        ]
+      },
+      "OpportunityPricingPoint": {
+        "type": "object",
+        "properties": {
+          "pricingDate": {
+            "type": "string"
+          },
+          "launchbayPricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "secondaryPremium": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "pricingDate",
+          "launchbayPricePerShare",
+          "secondaryPremium",
+          "impliedValuation"
+        ]
+      },
+      "OrderCancelRequest": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "maxLength": 500
+          }
+        }
+      },
+      "OrderCreateRequest": {
+        "type": "object",
+        "properties": {
+          "opportunitySlug": {
+            "type": "string",
+            "minLength": 1
+          },
+          "amount": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "opportunitySlug",
+          "amount"
+        ]
+      },
+      "OrderStatus": {
+        "type": "string",
+        "enum": [
+          "created",
+          "awaiting_signature",
+          "documents_signed",
+          "awaiting_payment",
+          "payment_details_sent",
+          "payment_received",
+          "accepted",
+          "completed",
+          "cancelled",
+          "rejected",
+          "expired",
+          "failed",
+          "lost"
+        ]
+      },
+      "PartnerHolding": {
+        "type": "object",
+        "properties": {
+          "opportunitySlug": {
+            "type": "string"
+          },
+          "opportunityName": {
+            "type": "string"
+          },
+          "domainName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "numberOfUnits": {
+            "type": "number"
+          },
+          "investedTotal": {
+            "type": "number"
+          },
+          "positionValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pnlVsSubscriptionPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "custodyAssetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerPosition"
+            }
+          }
+        },
+        "required": [
+          "opportunitySlug",
+          "opportunityName",
+          "domainName",
+          "numberOfUnits",
+          "investedTotal",
+          "positionValue",
+          "pnlVsSubscriptionPct",
+          "custodyAssetId",
+          "lots"
+        ]
+      },
+      "PartnerOpportunity": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "company",
+              "portfolio"
+            ]
+          },
+          "listingType": {
+            "type": "string",
+            "enum": [
+              "tokenized",
+              "non-tokenized"
+            ],
+            "default": "non-tokenized"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "tester-only",
+              "staging-only"
+            ],
+            "default": "public"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "displayOrder": {
+            "type": "integer"
+          },
+          "featured": {
+            "type": "boolean",
+            "default": false
+          },
+          "heroImage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logoOverride": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "minInvestment": {
+            "type": "number"
+          },
+          "ctaLabel": {
+            "type": "string"
+          },
+          "ctaUrl": {
+            "type": "string"
+          },
+          "platformId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/OpportunityCompanyMetrics"
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/OpportunityPortfolio"
+          },
+          "economics": {
+            "$ref": "#/components/schemas/OfferEconomics"
+          },
+          "body": {
+            "$ref": "#/components/schemas/OfferBody"
+          },
+          "legalDocuments": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/OpportunityLegalDocument"
+            },
+            "default": null
+          },
+          "custodyAssetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "type",
+          "displayName",
+          "tagline",
+          "displayOrder",
+          "heroImage",
+          "logoOverride",
+          "minInvestment",
+          "ctaLabel",
+          "ctaUrl",
+          "platformId",
+          "metrics",
+          "economics",
+          "body",
+          "custodyAssetId"
+        ]
+      },
+      "PartnerOpportunityDetail": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "company",
+              "portfolio"
+            ]
+          },
+          "listingType": {
+            "type": "string",
+            "enum": [
+              "tokenized",
+              "non-tokenized"
+            ],
+            "default": "non-tokenized"
+          },
+          "visibility": {
+            "type": "string",
+            "enum": [
+              "public",
+              "tester-only",
+              "staging-only"
+            ],
+            "default": "public"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "displayOrder": {
+            "type": "integer"
+          },
+          "featured": {
+            "type": "boolean",
+            "default": false
+          },
+          "heroImage": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "logoOverride": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "minInvestment": {
+            "type": "number"
+          },
+          "ctaLabel": {
+            "type": "string"
+          },
+          "ctaUrl": {
+            "type": "string"
+          },
+          "platformId": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "metrics": {
+            "$ref": "#/components/schemas/OpportunityCompanyMetrics"
+          },
+          "portfolio": {
+            "$ref": "#/components/schemas/OpportunityPortfolio"
+          },
+          "economics": {
+            "$ref": "#/components/schemas/OfferEconomics"
+          },
+          "body": {
+            "$ref": "#/components/schemas/OfferBody"
+          },
+          "legalDocuments": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/OpportunityLegalDocument"
+            },
+            "default": null
+          },
+          "fundingRounds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityFundingRound"
+            }
+          },
+          "pricingHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityPricingPoint"
+            }
+          },
+          "activityHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OpportunityActivityPoint"
+            }
+          },
+          "metricsUpdatedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "custodyAssetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "type",
+          "displayName",
+          "tagline",
+          "displayOrder",
+          "heroImage",
+          "logoOverride",
+          "minInvestment",
+          "ctaLabel",
+          "ctaUrl",
+          "platformId",
+          "metrics",
+          "economics",
+          "body",
+          "fundingRounds",
+          "pricingHistory",
+          "activityHistory",
+          "metricsUpdatedAt",
+          "custodyAssetId"
+        ]
+      },
+      "PartnerOpportunityDetailResponse": {
+        "type": "object",
+        "properties": {
+          "opportunity": {
+            "$ref": "#/components/schemas/PartnerOpportunityDetail"
+          }
+        },
+        "required": [
+          "opportunity"
+        ]
+      },
+      "PartnerOpportunityListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerOpportunity"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "PartnerOpportunitySnapshot": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "minInvestment": {
+            "type": "number"
+          },
+          "pricePerUnit": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "subscriptionPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tokenIssueFeePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeePct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeeYears": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "custodyAssetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "slug",
+          "name",
+          "minInvestment",
+          "pricePerUnit",
+          "subscriptionPrice",
+          "tokenIssueFeePct",
+          "adminFeePct",
+          "adminFeeYears",
+          "custodyAssetId"
+        ]
+      },
+      "PartnerOrder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "opportunitySlug": {
+            "type": "string"
+          },
+          "opportunityName": {
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "initialAmount": {
+            "type": "number"
+          },
+          "numberOfUnits": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "placementPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "subscriptionPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "positionValueAtAccepted": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tokenIssueFee": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tokenIssueFeeAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFee": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeeYears": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeeAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeePaidUntil": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "totalAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "paymentConfirmedDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "signingUrl": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failureReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "opportunitySnapshot": {
+            "$ref": "#/components/schemas/PartnerOpportunitySnapshot"
+          },
+          "settlementDocuments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettlementDocument"
+            }
+          },
+          "custodyOrderId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "statusHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerOrderStatusEvent"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "opportunitySlug",
+          "opportunityName",
+          "status",
+          "initialAmount",
+          "numberOfUnits",
+          "placementPrice",
+          "subscriptionPrice",
+          "positionValueAtAccepted",
+          "tokenIssueFee",
+          "tokenIssueFeeAmount",
+          "adminFee",
+          "adminFeeYears",
+          "adminFeeAmount",
+          "adminFeePaidUntil",
+          "totalAmount",
+          "paymentConfirmedDate",
+          "signingUrl",
+          "failureReason",
+          "createdAt",
+          "updatedAt",
+          "opportunitySnapshot",
+          "settlementDocuments",
+          "custodyOrderId",
+          "statusHistory"
+        ]
+      },
+      "PartnerOrderCreateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OrderCreateRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "returnUrl": {
+                "type": "string",
+                "format": "uri",
+                "description": "Where DocuSign sends the signer after signing. Defaults to the LBX web app; partners should pass their own page."
+              }
+            }
+          }
+        ]
+      },
+      "PartnerOrderListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerOrder"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "PartnerOrderOpportunityDocuments": {
+        "type": "object",
+        "properties": {
+          "opportunitySlug": {
+            "type": "string"
+          },
+          "opportunityName": {
+            "type": "string"
+          },
+          "documents": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "size": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "key",
+                "title",
+                "size"
+              ]
+            }
+          }
+        },
+        "required": [
+          "opportunitySlug",
+          "opportunityName",
+          "documents"
+        ]
+      },
+      "PartnerOrderResponse": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "$ref": "#/components/schemas/PartnerOrder"
+          }
+        },
+        "required": [
+          "order"
+        ]
+      },
+      "PartnerOrderStatusEvent": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/OrderStatus"
+          },
+          "at": {
+            "type": "string"
+          },
+          "by": {
+            "type": "string",
+            "enum": [
+              "investor",
+              "docusign",
+              "manager",
+              "custody",
+              "system"
+            ]
+          },
+          "note": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "at",
+          "by",
+          "note"
+        ]
+      },
+      "PartnerPortfolio": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "investedTotal": {
+                "type": "number"
+              },
+              "valueTotal": {
+                "type": "number"
+              },
+              "gain": {
+                "type": "number"
+              },
+              "gainPct": {
+                "type": "number"
+              },
+              "activePositions": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "investedTotal",
+              "valueTotal",
+              "gain",
+              "gainPct",
+              "activePositions"
+            ]
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerPosition"
+            }
+          },
+          "holdings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerHolding"
+            }
+          }
+        },
+        "required": [
+          "summary",
+          "positions",
+          "holdings"
+        ]
+      },
+      "PartnerPosition": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "orderId": {
+            "type": "string"
+          },
+          "opportunitySlug": {
+            "type": "string"
+          },
+          "opportunityName": {
+            "type": "string"
+          },
+          "numberOfUnits": {
+            "type": "number"
+          },
+          "initialAmount": {
+            "type": "number"
+          },
+          "subscriptionPrice": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "lbxPriceBeforeAccepted": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "positionValueAtAccepted": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pricingDate": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "launchbayPricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "indicativeValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "positionValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "pnlVsSubscriptionPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "tokenIssueFeeAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeeAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "totalAmount": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "currentValue": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "adminFeePaidUntil": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "constituents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PositionConstituent"
+            }
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "custodyAssetId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "orderId",
+          "opportunitySlug",
+          "opportunityName",
+          "numberOfUnits",
+          "initialAmount",
+          "subscriptionPrice",
+          "lbxPriceBeforeAccepted",
+          "positionValueAtAccepted",
+          "pricingDate",
+          "launchbayPricePerShare",
+          "impliedValuation",
+          "indicativeValue",
+          "positionValue",
+          "pnlVsSubscriptionPct",
+          "tokenIssueFeeAmount",
+          "adminFeeAmount",
+          "totalAmount",
+          "currentValue",
+          "adminFeePaidUntil",
+          "constituents",
+          "createdAt",
+          "custodyAssetId"
+        ]
+      },
+      "PartnerSigningRequest": {
+        "type": "object",
+        "properties": {
+          "returnUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PortfolioHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "portfolioValue": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "date",
+          "portfolioValue"
+        ]
+      },
+      "PortfolioHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PortfolioHistoryPoint"
+            }
+          }
+        },
+        "required": [
+          "points"
+        ]
+      },
+      "PositionConstituent": {
+        "type": "object",
+        "properties": {
+          "companyCode": {
+            "type": "string"
+          },
+          "slug": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "industry": {
+            "type": "string"
+          },
+          "sharesPerToken": {
+            "type": "number"
+          },
+          "priceAtCreated": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "companyCode",
+          "slug",
+          "name",
+          "industry",
+          "sharesPerToken",
+          "priceAtCreated"
+        ]
+      },
+      "PositionHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "positionValue": {
+            "type": "number"
+          },
+          "pnlVsSubscriptionPct": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "launchbayPricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "positionValue",
+          "pnlVsSubscriptionPct",
+          "launchbayPricePerShare",
+          "impliedValuation"
+        ]
+      },
+      "PositionHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PositionHistoryPoint"
+            }
+          }
+        },
+        "required": [
+          "points"
+        ]
+      },
+      "PresignedUrl": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "url",
+          "expiresIn"
+        ]
+      },
+      "PricingHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "pricePerShare": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "impliedValuation": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "date",
+          "pricePerShare",
+          "impliedValuation"
+        ]
+      },
+      "RankingChange": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "enum": [
+          "up",
+          "down",
+          "same",
+          "new",
+          null
+        ]
+      },
+      "SettlementDocument": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string"
+          },
+          "fileName": {
+            "type": "string"
+          },
+          "size": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "kind": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "uid",
+          "fileName",
+          "size",
+          "kind"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "partnerKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Static partner API key"
+      }
+    }
+  }
+}
