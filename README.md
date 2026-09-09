@@ -61,7 +61,13 @@ once rather than one series call per company.
 | `GET /v1/partner/opportunities/{slug}` | One offer in full |
 
 Only offers of `listingType: "tokenized"` are orderable through the API.
-`minInvestment` is the per-investor floor in USD; `investorDeadline` is the
+`minInvestment` is the per-investor floor in USD, applied to the **position
+value** the order ends up with. Orders buy whole units (`amount` is floored to
+`numberOfUnits × subscriptionPrice`), so the smallest accepted amount is the
+smallest whole-unit value at or above `minInvestment` — e.g. a $15,000 minimum
+at $930/unit means 17 units = $15,810. A smaller amount is refused with
+`VALIDATION_ERROR` and a message quoting that effective minimum
+(`Minimum investment is $15,810 (17 units at $930)`). `investorDeadline` is the
 public commit deadline — orders after it are refused (`SUBSCRIPTION_CLOSED`).
 
 ### Orders

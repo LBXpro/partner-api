@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-09-09 — minimum applies to position value (behaviour clarification)
+
+`POST /v1/partner/orders` now enforces `minInvestment` on the whole-unit
+position value rather than on the typed `amount`; the `VALIDATION_ERROR`
+message quotes the effective minimum (`Minimum investment is $15,810 (17 units
+at $930)`). No field or endpoint changes.
+
 ## v1.3 — 2026-09-08 — daily prices (additive)
 
 - `GET /v1/partner/companies/{slug}/daily-prices` — daily `institutionalPrice` /
