@@ -28,6 +28,7 @@ describe("resolveCommand", () => {
   test("lists the groups used in the unknown-command hint", () => {
     expect(commandGroups()).toEqual([
       "ping",
+      "whoami",
       "companies",
       "prices",
       "indexes",
@@ -196,7 +197,7 @@ describe("global behaviour", () => {
     const run = await runCli(["frobnicate"]);
     expect(run.exitCode).toBe(64);
     expect(run.stderr).toContain("Unknown command: frobnicate");
-    expect(run.stderr).toContain("known groups: ping, companies");
+    expect(run.stderr).toContain("known groups: ping, whoami, companies");
     expect(run.requests).toHaveLength(0);
   });
 

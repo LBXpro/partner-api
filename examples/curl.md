@@ -6,6 +6,13 @@ export LBX_KEY=lbx_stg_…            # your partner key
 auth=(-H "Authorization: Bearer $LBX_KEY")
 ```
 
+## 0. Who am I, and which environment is this?
+
+```bash
+curl -s "${auth[@]}" "$LBX_API/v1/partner/whoami" | jq .
+# { "partner": "acme", "environment": "staging", "custodyEnvironment": "test" }
+```
+
 ## 1. Data
 
 ```bash

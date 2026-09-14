@@ -66,3 +66,26 @@ describe("ping", () => {
     expect(run.exitCode).toBe(1);
   });
 });
+
+describe("whoami", () => {
+  const body = { partner: "acme", environment: "staging", custodyEnvironment: "test" };
+
+  test("calls the whoami endpoint", async () => {
+    const run = await runCli(["whoami"], { body });
+    expectOk(run);
+    expect(run.stub.only().path).toBe("/v1/partner/whoami");
+  });
+
+  test("prints partner, environment and custody environment", async () => {
+    const stdout = expectOk(await runCli(["whoami"], { body }));
+    expect(stdout).toContain("partner      acme");
+    expect(stdout).toContain("environment  staging");
+    expect(stdout).toContain("custody      test");
+    expect(stdout).toContain("no real money");
+  });
+
+  test("--json is the raw response", async () => {
+    const stdout = expectOk(await runCli(["whoami", "--json"], { body }));
+    expect(JSON.parse(stdout)).toEqual(body);
+  });
+});
