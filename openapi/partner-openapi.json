@@ -23,6 +23,53 @@
     }
   ],
   "paths": {
+    "/v1/partner/whoami": {
+      "get": {
+        "operationId": "partnerWhoami",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Which key and environment this call is using",
+        "description": "Answers with the partner the key belongs to, the LBX environment answering, and whether orders placed here settle in the custody test environment or the live one. Use it as the first call of an integration to confirm the sandbox.",
+        "responses": {
+          "200": {
+            "description": "Caller identity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerWhoami"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/partner/companies": {
       "get": {
         "operationId": "partnerListCompanies",
@@ -3905,6 +3952,37 @@
             "format": "uri"
           }
         }
+      },
+      "PartnerWhoami": {
+        "type": "object",
+        "properties": {
+          "partner": {
+            "type": "string",
+            "example": "acme",
+            "description": "Partner name the key belongs to"
+          },
+          "environment": {
+            "type": "string",
+            "enum": [
+              "staging",
+              "production"
+            ],
+            "description": "The LBX environment answering this call"
+          },
+          "custodyEnvironment": {
+            "type": "string",
+            "enum": [
+              "test",
+              "live"
+            ],
+            "description": "Which custody environment orders placed here settle in. `test` on staging: nothing placed here moves real money."
+          }
+        },
+        "required": [
+          "partner",
+          "environment",
+          "custodyEnvironment"
+        ]
       },
       "PortfolioHistoryPoint": {
         "type": "object",

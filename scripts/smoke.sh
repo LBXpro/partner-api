@@ -25,6 +25,8 @@ check "openapi.json is public"     200 "$(curl -s -o /dev/null -w '%{http_code}'
 check "no key → 401"               401 "$(curl -s -o /dev/null -w '%{http_code}' "$LBX_API/v1/partner/companies")"
 check "wrong key → 401"            401 "$(curl -s -o /dev/null -w '%{http_code}' -H 'Authorization: Bearer nope' "$LBX_API/v1/partner/companies")"
 
+check "whoami"                     200 "$(get '/v1/partner/whoami')" "$(jq -r '"partner=\(.partner) env=\(.environment) custody=\(.custodyEnvironment)"' "$TMP/body" 2>/dev/null)"
+
 echo "data"
 check "companies list"             200 "$(get '/v1/partner/companies?limit=5')" "total=$(jq -r .total "$TMP/body" 2>/dev/null)"
 SLUG=$(jq -r '.items[0].slug' "$TMP/body" 2>/dev/null)

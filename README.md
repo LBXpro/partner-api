@@ -29,6 +29,17 @@ you have switched and the old key is revoked.
 | `401 UNAUTHORIZED` | Key missing or invalid |
 | `404 NOT_FOUND` on every partner route | Your access isn't provisioned (yet) on this environment |
 
+Make `GET /v1/partner/whoami` the first call of an integration. It answers
+with the partner your key belongs to, the LBX environment you reached, and
+whether orders placed here settle in the custody **test** environment or the
+**live** one:
+
+```json
+{ "partner": "acme", "environment": "staging", "custodyEnvironment": "test" }
+```
+
+On staging nothing you order moves real money.
+
 ## What you can do
 
 ### Market data
@@ -61,8 +72,22 @@ once rather than one series call per company.
 | `GET /v1/partner/opportunities/{slug}` | One offer in full |
 
 Only offers of `listingType: "tokenized"` are orderable through the API.
-`minInvestment` is the per-investor floor in USD; `investorDeadline` is the
+`minInvestment` is the per-investor floor in USD, applied to the **position
+value** the order ends up with. Orders buy whole units (`amount` is floored to
+`numberOfUnits × subscriptionPrice`), so the smallest accepted amount is the
+smallest whole-unit value at or above `minInvestment` — e.g. a $15,000 minimum
+at $930/unit means 17 units = $15,810. A smaller amount is refused with
+`VALIDATION_ERROR` and a message quoting that effective minimum
+(`Minimum investment is $15,810 (17 units at $930)`). `investorDeadline` is the
 public commit deadline — orders after it are refused (`SUBSCRIPTION_CLOSED`).
+
+`custodyAssetId` is the offer's identity on the custody platform **for the
+environment you are calling**. Staging and production are separate custody
+environments, so an offer can be live on one and not yet set up on the other:
+it is then listed with `custodyAssetId: null`, and an order on it is refused
+with `VALIDATION_ERROR` — *This offer is not configured on this environment
+and cannot be ordered here.* — before anything is sent to custody. Treat a
+`null` as "not orderable here", not as an error.
 
 ### Orders
 
@@ -144,6 +169,12 @@ Every error is the same envelope:
 | `INVESTOR_SETUP_INCOMPLETE` | 403 | Your partner account's custody registration isn't complete — contact LBX |
 | `NOT_FOUND` | 404 | Unknown slug/id, or the resource isn't yours |
 | `UPSTREAM_ERROR` | 502 | A dependency failed; safe to retry with the same `Idempotency-Key` |
+
+Messages are written for people and are stable enough to show to yours. A
+custody-platform rejection is translated into one of the sentences above; you
+never receive raw provider wording, so an unfamiliar message is worth reporting
+to us with the `x-request-id` response header — every request echoes one, and
+it is how we find the full story of a call on our side.
 
 ## Conventions
 

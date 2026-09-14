@@ -30,4 +30,29 @@ const ping: Command = {
   },
 };
 
-export const miscCommands: Command[] = [ping];
+/**
+ * Which key, which environment, and whether orders here settle in the custody
+ * test environment or the live one. The first call of an integration.
+ */
+const whoami: Command = {
+  path: ["whoami"],
+  summary: "Which partner, environment and custody environment this key reaches",
+  usage: "lbx whoami",
+  async run({ client }): Promise<CommandResult> {
+    const data = await client.get<{
+      partner: string;
+      environment: "staging" | "production";
+      custodyEnvironment: "test" | "live";
+    }>("/v1/partner/whoami");
+    return {
+      data,
+      lines: [
+        `partner      ${data.partner}`,
+        `environment  ${data.environment}`,
+        `custody      ${data.custodyEnvironment}${data.custodyEnvironment === "test" ? "  (orders here move no real money)" : ""}`,
+      ],
+    };
+  },
+};
+
+export const miscCommands: Command[] = [ping, whoami];

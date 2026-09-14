@@ -57,6 +57,7 @@ lbx ping --timeout 5     # per-request budget in seconds (default 30, 0 disables
 | Command | What it does |
 | --- | --- |
 | `lbx ping` | Check the base URL and key |
+| `lbx whoami` | Which partner, environment and custody environment (test/live) this key reaches |
 | `lbx companies list` | Browse the catalog — see filters below |
 | `lbx companies get <slug>` | Company detail |
 | `lbx companies charts <slug>` | 24-month pricing series, plus that window's funding rounds |
