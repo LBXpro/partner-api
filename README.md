@@ -125,6 +125,60 @@ GET  /v1/partner/orders/{id}                  →  payment_received → accepted
 | `accepted` / `completed` | Allocation confirmed / tokens issued |
 | `cancelled` / `rejected` / `failed` / `lost` | Terminal — `failureReason` says why |
 
+**Order state diagram**
+
+Who moves an order is fixed per transition: **you** place, confirm signing and
+may cancel while unpaid; **LBX ops** move the payment steps; the **custody
+platform** settles. Nothing after `awaiting_payment` is triggered by you —
+poll `GET /v1/partner/orders/{id}`.
+
+```mermaid
+stateDiagram-v2
+    direction TB
+
+    [*] --> created: you — POST /orders
+    created --> awaiting_signature: LBX — prospectus issued (signingUrl)
+    created --> failed: LBX — prospectus refused (window closed, oversubscribed)
+
+    awaiting_signature --> awaiting_signature: you — POST /resume-signing (fresh signingUrl)
+    awaiting_signature --> documents_signed: you — POST /confirm-signing (envelope completed)
+    documents_signed --> awaiting_payment: LBX — custody order created (transient)
+
+    awaiting_payment --> payment_details_sent: LBX ops — payment instructions emailed
+    payment_details_sent --> payment_received: LBX ops — funds confirmed
+    payment_received --> accepted: custody platform — allocation confirmed
+    accepted --> completed: custody platform — tokens issued
+
+    state "unpaid" as unpaid {
+        created
+        awaiting_signature
+        documents_signed
+        awaiting_payment
+        payment_details_sent
+    }
+    unpaid --> cancelled: you — POST /cancel, or LBX ops
+    unpaid --> lost: LBX ops — abandoned
+    documents_signed --> rejected: LBX ops — compliance
+    awaiting_payment --> rejected: LBX ops — compliance
+    payment_details_sent --> rejected: LBX ops — compliance
+    payment_received --> rejected: LBX ops — compliance
+
+    unpaid --> failed: custody platform — declined
+    payment_received --> failed: custody platform — declined
+    accepted --> failed: custody platform — failure
+
+    completed --> [*]
+    cancelled --> [*]
+    rejected --> [*]
+    failed --> [*]
+    lost --> [*]
+```
+
+- Terminal: `completed`, `cancelled`, `rejected`, `failed`, `lost`.
+- Cancel only while unpaid; once funds are confirmed the way out is a refund.
+- The payment steps are strictly linear: `awaiting_payment → payment_details_sent → payment_received`.
+- `documents_signed` is transient — confirm-signing lands on `awaiting_payment` in the same call.
+
 `returnUrl` is where the e-signature page sends the signatory afterwards.
 Pass a page of your own; it defaults to the LBX web app.
 
