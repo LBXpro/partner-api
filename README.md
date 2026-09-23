@@ -78,7 +78,11 @@ value** the order ends up with. Orders buy whole units (`amount` is floored to
 smallest whole-unit value at or above `minInvestment` — e.g. a $15,000 minimum
 at $930/unit means 17 units = $15,810. A smaller amount is refused with
 `VALIDATION_ERROR` and a message quoting that effective minimum
-(`Minimum investment is $15,810 (17 units at $930)`). `investorDeadline` is the
+(`Minimum investment is $15,810 (17 units at $930)`). Whatever you send, the
+order tells you what happened to it: `numberOfUnits`, `positionValueAtAccepted`
+(what the contract shows), `uninvestedRemainder` (dollars the floor left out)
+and `totalAmount` (position plus fees, what is actually wired). To avoid a
+remainder altogether, place by `units`. `investorDeadline` is the
 public commit deadline — orders after it are refused (`SUBSCRIPTION_CLOSED`).
 
 `custodyAssetId` is the offer's identity on the custody platform **for the
@@ -104,7 +108,7 @@ GET  /v1/partner/orders/{id}                  →  payment_received → accepted
 
 | Method · path | Notes |
 | --- | --- |
-| `POST /v1/partner/orders` | Body: `{ "opportunitySlug", "amount", "returnUrl"? }`. `amount` is the pre-fee investment in USD. Returns the order with `signingUrl`. **Send an `Idempotency-Key` header** (see below). |
+| `POST /v1/partner/orders` | Body: `{ "opportunitySlug", "amount" or "units", "returnUrl"? }`. `amount` is the pre-fee investment in USD, **floored to whole units** — the leftover comes back as `uninvestedRemainder`; `units` places an exact whole-unit count instead (remainder 0). Exactly one of the two. Returns the order with `signingUrl`. **Send an `Idempotency-Key` header** (see below). |
 | `GET /v1/partner/orders` | All orders on your account, newest first |
 | `GET /v1/partner/orders/{id}` | Status, economics (units, fees, total), status history — **poll this** |
 | `POST /v1/partner/orders/{id}/confirm-signing` | Call once the signatory has completed the envelope. Idempotent. `400 "Documents not signed yet"` means call again after signing. |
