@@ -10,6 +10,8 @@
 - The OpenAPI snapshot also now includes `units` on order create and
   `uninvestedRemainder` on the order. The guide already described both; they
   were missing from the committed spec.
+- CLI 0.3.1: `lbx prices` and `lbx companies prices` tabulate `spreadPercent`
+  and `calculationType`.
 
 ## v1.4 — 2026-09-14 — whoami, custody per environment (additive)
 

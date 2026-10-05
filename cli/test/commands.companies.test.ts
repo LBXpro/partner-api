@@ -317,8 +317,20 @@ describe("companies prices", () => {
     company: "Anthropic",
     slug: "anthropic",
     points: [
-      { date: "2026-09-04", institutionalPrice: 263, retailPrice: 330 },
-      { date: "2026-09-08", institutionalPrice: 270.5, retailPrice: null },
+      {
+        date: "2026-09-04",
+        institutionalPrice: 263,
+        retailPrice: 330,
+        spreadPercent: 25.4753,
+        calculationType: "observed",
+      },
+      {
+        date: "2026-09-08",
+        institutionalPrice: 270.5,
+        retailPrice: null,
+        spreadPercent: null,
+        calculationType: "modeled",
+      },
     ],
   };
 
@@ -342,13 +354,16 @@ describe("companies prices", () => {
   test("tabulates both tiers, oldest first, null as a dash", async () => {
     const stdout = expectOk(await runCli(["companies", "prices", "anthropic"], { body: series }));
     const lines = stdout.split("\n");
-    expect(lines.find((l) => l.startsWith("DATE"))).toMatch(/INSTITUTIONAL\s+RETAIL/);
+    expect(lines.find((l) => l.startsWith("DATE"))).toMatch(/INSTITUTIONAL\s+RETAIL\s+SPREAD\s+TYPE/);
     const first = lines.find((l) => l.startsWith("2026-09-04"))!;
     const last = lines.find((l) => l.startsWith("2026-09-08"))!;
     expect(first).toContain("$263");
     expect(first).toContain("$330");
+    expect(first).toContain("25.48%");
+    expect(first).toContain("observed");
     expect(last).toContain("$270.5");
     expect(last).toContain("—");
+    expect(last).toContain("modeled");
     expect(lines.indexOf(first)).toBeLessThan(lines.indexOf(last));
     expect(stdout).toContain("2 days");
   });

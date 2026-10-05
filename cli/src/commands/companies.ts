@@ -266,6 +266,8 @@ interface DailyPricePoint {
   date: string;
   institutionalPrice: number | null;
   retailPrice: number | null;
+  spreadPercent: number | null;
+  calculationType: "observed" | "modeled" | null;
 }
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -281,7 +283,7 @@ export function requireDay(flags: Parameters<typeof getString>[0], name: string)
 
 const prices: Command = {
   path: ["companies", "prices"],
-  summary: "Daily prices (institutional + retail) for a company, oldest first",
+  summary: "Daily prices (institutional, retail, spread, type) for a company, oldest first",
   usage: "lbx companies prices <slug> [--from <day>] [--to <day>] [--limit <n>]",
   tabular: true,
   options: [
@@ -319,6 +321,17 @@ const prices: Command = {
             value: (row) => formatMoney(row.retailPrice),
             raw: (row) => row.retailPrice,
             align: "right",
+          },
+          {
+            header: "SPREAD",
+            value: (row) => formatPercent(row.spreadPercent),
+            raw: (row) => row.spreadPercent,
+            align: "right",
+          },
+          {
+            header: "TYPE",
+            value: (row) => row.calculationType ?? "—",
+            raw: (row) => row.calculationType,
           },
         ],
         rows: points,

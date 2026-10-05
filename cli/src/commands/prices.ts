@@ -1,5 +1,5 @@
 import type { Command } from "../command.ts";
-import { formatMoney, type CommandResult } from "../output.ts";
+import { formatMoney, formatPercent, type CommandResult } from "../output.ts";
 import { requireDay } from "./companies.ts";
 
 interface DailyPriceRow {
@@ -7,6 +7,8 @@ interface DailyPriceRow {
   company: string | null;
   institutionalPrice: number | null;
   retailPrice: number | null;
+  spreadPercent: number | null;
+  calculationType: "observed" | "modeled" | null;
 }
 
 interface DailyPricesResponse {
@@ -47,6 +49,17 @@ const prices: Command = {
             value: (row) => formatMoney(row.retailPrice),
             raw: (row) => row.retailPrice,
             align: "right",
+          },
+          {
+            header: "SPREAD",
+            value: (row) => formatPercent(row.spreadPercent),
+            raw: (row) => row.spreadPercent,
+            align: "right",
+          },
+          {
+            header: "TYPE",
+            value: (row) => row.calculationType ?? "—",
+            raw: (row) => row.calculationType,
           },
         ],
         rows: items,

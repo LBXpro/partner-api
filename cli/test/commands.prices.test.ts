@@ -4,8 +4,22 @@ import { expectOk, runCli } from "./helpers.ts";
 const day = {
   date: "2026-09-08",
   items: [
-    { slug: "anthropic", company: "Anthropic", institutionalPrice: 871, retailPrice: 970 },
-    { slug: "openai", company: "OpenAI", institutionalPrice: 519, retailPrice: null },
+    {
+      slug: "anthropic",
+      company: "Anthropic",
+      institutionalPrice: 871,
+      retailPrice: 970,
+      spreadPercent: 11.3662,
+      calculationType: "observed",
+    },
+    {
+      slug: "openai",
+      company: "OpenAI",
+      institutionalPrice: 519,
+      retailPrice: null,
+      spreadPercent: null,
+      calculationType: null,
+    },
   ],
 };
 
@@ -31,6 +45,9 @@ describe("prices", () => {
     expect(openai).toContain("OpenAI");
     expect(openai).toContain("$519");
     expect(openai).toContain("—");
+    const anthropic = stdout.split("\n").find((l) => l.startsWith("anthropic"))!;
+    expect(anthropic).toContain("11.37%");
+    expect(anthropic).toContain("observed");
     expect(stdout).toContain("2 companies");
   });
 
