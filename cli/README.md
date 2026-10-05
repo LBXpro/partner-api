@@ -62,8 +62,8 @@ lbx ping --timeout 5     # per-request budget in seconds (default 30, 0 disables
 | `lbx companies get <slug>` | Company detail |
 | `lbx companies charts <slug>` | 24-month pricing series, plus that window's funding rounds |
 | `lbx companies funding <slug>` | All funding rounds |
-| `lbx companies prices <slug> [--from d] [--to d] [--limit n]` | Daily institutional and retail prices, oldest first |
-| `lbx prices [--date d]` | Every priced company on one day (default: the latest day with prices) |
+| `lbx companies prices <slug> [--from d] [--to d] [--limit n]` | Daily institutional, retail, spread (%), and calculation type, oldest first |
+| `lbx prices [--date d]` | Every priced company on one day — same fields (default: the latest day with prices) |
 | `lbx indexes list` | Indexes with level and performance |
 | `lbx indexes history <id> [--months n]` | Index level over time (`lbx25`, or an id) |
 | `lbx opportunities list` | Public offers, with an `ORDERABLE` column |

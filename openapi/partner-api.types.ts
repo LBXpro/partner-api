@@ -100,7 +100,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daily prices (institutional + retail) for a company
+         * Daily prices (institutional, retail, spread, calculation type) for a company
          * @description One point per pricing day, ascending. Filter with `from`/`to` (inclusive, UTC days); `limit` keeps the most recent N days of the range. A company with no daily prices returns an empty series.
          */
         get: operations["partnerGetCompanyDailyPrices"];
@@ -120,7 +120,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Daily prices for every priced company on one day
+         * Daily prices (institutional, retail, spread, calculation type) for every priced company on one day
          * @description Bulk snapshot: every company that has a price on `date` (default: the latest day with prices). Use this for a daily pull instead of one call per company.
          */
         get: operations["partnerListDailyPrices"];
@@ -496,6 +496,16 @@ export interface components {
             company: string;
             institutionalPrice: number | null;
             retailPrice: number | null;
+            /**
+             * @description Retail premium over the institutional price, as a PERCENT (not a ratio): 25.4753 means retail is 25.4753% above institutional, i.e. (retailPrice − institutionalPrice) / institutionalPrice × 100. Not a bid/ask spread. Null when unavailable.
+             * @example 25.4753
+             */
+            spreadPercent: number | null;
+            /**
+             * @description How the day's prices were produced: `observed` (from market data) or `modeled`. Null when unavailable.
+             * @enum {string|null}
+             */
+            calculationType: "observed" | "modeled" | null;
         };
         DailyPricePoint: {
             /**
@@ -505,6 +515,16 @@ export interface components {
             date: string;
             institutionalPrice: number | null;
             retailPrice: number | null;
+            /**
+             * @description Retail premium over the institutional price, as a PERCENT (not a ratio): 25.4753 means retail is 25.4753% above institutional, i.e. (retailPrice − institutionalPrice) / institutionalPrice × 100. Not a bid/ask spread. Null when unavailable.
+             * @example 25.4753
+             */
+            spreadPercent: number | null;
+            /**
+             * @description How the day's prices were produced: `observed` (from market data) or `modeled`. Null when unavailable.
+             * @enum {string|null}
+             */
+            calculationType: "observed" | "modeled" | null;
         };
         DailyPricesListResponse: {
             /** @description The pricing day served; null when no prices exist yet */
@@ -663,7 +683,8 @@ export interface components {
         };
         OrderCreateRequest: {
             opportunitySlug: string;
-            amount: number;
+            amount?: number;
+            units?: number;
         };
         /** @enum {string} */
         OrderStatus: "created" | "awaiting_signature" | "documents_signed" | "awaiting_payment" | "payment_details_sent" | "payment_received" | "accepted" | "completed" | "cancelled" | "rejected" | "expired" | "failed" | "lost";
@@ -782,6 +803,7 @@ export interface components {
             adminFeeAmount: number | null;
             adminFeePaidUntil: string | null;
             totalAmount: number | null;
+            uninvestedRemainder: number | null;
             paymentConfirmedDate: string | null;
             signingUrl: string | null;
             failureReason: string | null;

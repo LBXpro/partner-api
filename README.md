@@ -50,8 +50,8 @@ On staging nothing you order moves real money.
 | `GET /v1/partner/companies/{slug}` | Company detail with 12-month pricing history and monthly activity history |
 | `GET /v1/partner/companies/{slug}/charts` | 24-month pricing series (price, implied valuation, secondary premium) + funding rounds |
 | `GET /v1/partner/companies/{slug}/funding` | All funding rounds |
-| `GET /v1/partner/companies/{slug}/daily-prices` | Daily price series (`institutionalPrice`, `retailPrice`, one point per day, ascending). `from`/`to` are inclusive UTC days (`YYYY-MM-DD`); `limit` keeps the most recent N days (default 365, max 2000) |
-| `GET /v1/partner/daily-prices?date=` | Every priced company on one day — the bulk pull. `date` defaults to the latest day that has prices; the response echoes the `date` served |
+| `GET /v1/partner/companies/{slug}/daily-prices` | Daily price series (`institutionalPrice`, `retailPrice`, `spreadPercent`, `calculationType`; one point per day, ascending). `from`/`to` are inclusive UTC days (`YYYY-MM-DD`); `limit` keeps the most recent N days (default 365, max 2000) |
+| `GET /v1/partner/daily-prices?date=` | Every priced company on one day — the bulk pull, same price fields per item. `date` defaults to the latest day that has prices; the response echoes the `date` served |
 | `GET /v1/partner/indexes` | LBX indexes with current level and performance metrics |
 | `GET /v1/partner/indexes/{id}/history?months=` | Index level history (`lbx25`, or the index id) |
 
@@ -63,6 +63,12 @@ Daily prices are published per business day for a subset of the catalog and
 the set grows over time; a company without daily prices returns an empty
 `points` array, not an error. For a daily sync, call `GET /v1/partner/daily-prices`
 once rather than one series call per company.
+
+`spreadPercent` is the retail premium over `institutionalPrice`, as a percent
+(not a ratio, and not a bid/ask spread): `25.4753` means retail is 25.4753%
+above institutional, `(retailPrice − institutionalPrice) / institutionalPrice × 100`.
+`calculationType` is `observed` or `modeled`. Either field is `null` when
+unavailable.
 
 ### Opportunities
 
