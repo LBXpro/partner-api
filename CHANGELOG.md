@@ -1,5 +1,16 @@
 # Changelog
 
+## v1.5 — 2026-10-05 — spread and calculation type on daily prices (additive)
+
+- Both daily-price responses add `spreadPercent` and `calculationType` on
+  each series point and each bulk item. `spreadPercent` is the retail premium
+  over the institutional price, in percent (`25.4753` = 25.4753%), not a
+  bid/ask spread; `null` when unavailable. `calculationType` is `observed` or
+  `modeled`, or `null` when unavailable.
+- The OpenAPI snapshot also now includes `units` on order create and
+  `uninvestedRemainder` on the order. The guide already described both; they
+  were missing from the committed spec.
+
 ## v1.4 — 2026-09-14 — whoami, custody per environment (additive)
 
 - `GET /v1/partner/whoami` — `{ partner, environment, custodyEnvironment }`.

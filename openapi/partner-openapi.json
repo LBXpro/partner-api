@@ -513,7 +513,7 @@
             "partnerKey": []
           }
         ],
-        "summary": "Daily prices (institutional + retail) for a company",
+        "summary": "Daily prices (institutional, retail, spread, calculation type) for a company",
         "description": "One point per pricing day, ascending. Filter with `from`/`to` (inclusive, UTC days); `limit` keeps the most recent N days of the range. A company with no daily prices returns an empty series.",
         "parameters": [
           {
@@ -618,7 +618,7 @@
             "partnerKey": []
           }
         ],
-        "summary": "Daily prices for every priced company on one day",
+        "summary": "Daily prices (institutional, retail, spread, calculation type) for every priced company on one day",
         "description": "Bulk snapshot: every company that has a price on `date` (default: the latest day with prices). Use this for a daily pull instead of one call per company.",
         "parameters": [
           {
@@ -2161,13 +2161,35 @@
               "number",
               "null"
             ]
+          },
+          "spreadPercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 25.4753,
+            "description": "Retail premium over the institutional price, as a PERCENT (not a ratio): 25.4753 means retail is 25.4753% above institutional, i.e. (retailPrice − institutionalPrice) / institutionalPrice × 100. Not a bid/ask spread. Null when unavailable."
+          },
+          "calculationType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "observed",
+              "modeled",
+              null
+            ],
+            "description": "How the day's prices were produced: `observed` (from market data) or `modeled`. Null when unavailable."
           }
         },
         "required": [
           "slug",
           "company",
           "institutionalPrice",
-          "retailPrice"
+          "retailPrice",
+          "spreadPercent",
+          "calculationType"
         ]
       },
       "DailyPricePoint": {
@@ -2189,12 +2211,34 @@
               "number",
               "null"
             ]
+          },
+          "spreadPercent": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "example": 25.4753,
+            "description": "Retail premium over the institutional price, as a PERCENT (not a ratio): 25.4753 means retail is 25.4753% above institutional, i.e. (retailPrice − institutionalPrice) / institutionalPrice × 100. Not a bid/ask spread. Null when unavailable."
+          },
+          "calculationType": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "observed",
+              "modeled",
+              null
+            ],
+            "description": "How the day's prices were produced: `observed` (from market data) or `modeled`. Null when unavailable."
           }
         },
         "required": [
           "date",
           "institutionalPrice",
-          "retailPrice"
+          "retailPrice",
+          "spreadPercent",
+          "calculationType"
         ]
       },
       "DailyPricesListResponse": {
@@ -3043,11 +3087,14 @@
           "amount": {
             "type": "number",
             "exclusiveMinimum": 0
+          },
+          "units": {
+            "type": "integer",
+            "exclusiveMinimum": 0
           }
         },
         "required": [
-          "opportunitySlug",
-          "amount"
+          "opportunitySlug"
         ]
       },
       "OrderStatus": {
@@ -3558,6 +3605,12 @@
               "null"
             ]
           },
+          "uninvestedRemainder": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
           "paymentConfirmedDate": {
             "type": [
               "string",
@@ -3621,6 +3674,7 @@
           "adminFeeAmount",
           "adminFeePaidUntil",
           "totalAmount",
+          "uninvestedRemainder",
           "paymentConfirmedDate",
           "signingUrl",
           "failureReason",
