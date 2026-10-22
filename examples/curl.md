@@ -104,6 +104,20 @@ curl -s "${auth[@]}" -X POST "$LBX_API/v1/partner/orders/$ORDER/cancel" \
   -H "Content-Type: application/json" -d '{"note":"duplicate"}' | jq .order.status
 ```
 
+## 8. Deal flow (keys with the deal-flow permission set)
+
+```bash
+# The whole feed in one call, rebuilt once a day
+curl -s "${auth[@]}" "$LBX_API/v1/partner/deal-flow" | jq '{asOf, n: (.items|length), first: .items[0]}'
+
+# To CSV; jq keeps id as the exact string it is
+curl -s "${auth[@]}" "$LBX_API/v1/partner/deal-flow" \
+  | jq -r '.items[] | [.id, .companyName, .dealType, .pps, .maxSize, .created] | @csv' > deal-flow.csv
+```
+
+A key without the set gets `403 FORBIDDEN` — *This partner key does not
+include deal flow*.
+
 ## Errors look like
 
 ```json

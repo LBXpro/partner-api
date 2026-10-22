@@ -1,5 +1,6 @@
 import type { Command } from "../command.ts";
 import { companyCommands } from "./companies.ts";
+import { dealFlowCommands } from "./dealFlow.ts";
 import { indexCommands } from "./indexes.ts";
 import { miscCommands } from "./misc.ts";
 import { opportunityCommands } from "./opportunities.ts";
@@ -15,6 +16,7 @@ export const commands: readonly Command[] = [
   ...opportunityCommands,
   ...orderCommands,
   ...portfolioCommands,
+  ...dealFlowCommands,
 ];
 
 export interface Resolution {

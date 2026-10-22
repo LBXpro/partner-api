@@ -1,7 +1,8 @@
 # LBX Partner API
 
 Programmatic access to LBX private-market data, the public opportunity
-catalog, and order placement for a partner's own investor account.
+catalog, order placement for a partner's own investor account, and a daily
+deal-flow feed of secondary-market orders.
 
 - **Base URL**: `https://api-staging.lbxpro.tech` (partner access runs against
   the LBX staging environment; production access is arranged separately)
@@ -9,7 +10,7 @@ catalog, and order placement for a partner's own investor account.
 - **Machine-readable spec**: [`openapi/partner-openapi.json`](openapi/partner-openapi.json)
   (OpenAPI 3.1) · TypeScript types: [`openapi/partner-api.types.ts`](openapi/partner-api.types.ts)
 - **Worked examples**: [`examples/curl.md`](examples/curl.md)
-- **CLI**: [`cli/`](cli/README.md) — `lbx companies list`, `lbx orders create`, …
+- **CLI**: [`cli/`](cli/README.md) — `lbx companies list`, `lbx orders create`, `lbx deal-flow`, …
 
 ## Authentication
 
@@ -24,9 +25,20 @@ the key server-side — never in a browser or mobile app. Rotation is
 handled by issuing a second key while the first stays valid; tell us when
 you have switched and the old key is revoked.
 
+Each key holds one or both **permission sets**:
+
+| Set | Covers |
+| --- | --- |
+| `core` | Market data, opportunities, orders and portfolio — everything below except deal flow |
+| `deal-flow` | `GET /v1/partner/deal-flow` ([Deal flow](#deal-flow)) |
+
+`GET /v1/partner/whoami` answers any valid key. Keys issued before deal flow
+hold `core`, unchanged.
+
 | Response | Meaning |
 | --- | --- |
 | `401 UNAUTHORIZED` | Key missing or invalid |
+| `403 FORBIDDEN` — *This partner key does not include …* | The key is valid but its permission sets don't cover this route |
 | `404 NOT_FOUND` on every partner route | Your access isn't provisioned (yet) on this environment |
 
 Make `GET /v1/partner/whoami` the first call of an integration. It answers
@@ -208,6 +220,63 @@ investor app shows, scoped to your partner account.
 | `GET /v1/partner/portfolio/history` | Portfolio value over time (`points[{date, value}]`) |
 | `GET /v1/partner/positions/{id}/history` | One position's value over time (`id` from `positions[].id`) |
 
+### Deal flow
+
+Needs the `deal-flow` permission set. Your key decides which feed you read.
+
+| Method · path | Returns |
+| --- | --- |
+| `GET /v1/partner/deal-flow` | `{ asOf, items }` — every secondary-market order seen in the last 28 days, one row per order in its latest state, the whole feed in one response (a few hundred rows) |
+
+```json
+{
+  "asOf": "2026-10-21T07:00:12.657Z",
+  "items": [
+    {
+      "id": "-7301948827364519203",
+      "companyName": "Example Robotics",
+      "created": "2026-10-19",
+      "dealType": "BID",
+      "pps": 32.5,
+      "structure": "DIRECT",
+      "shareClass": "COMMON",
+      "managementFee": null,
+      "carry": null,
+      "verification": false,
+      "maxNumberOfShares": 1000,
+      "maxSize": 32500,
+      "minNumberOfShares": null,
+      "minSize": null,
+      "directToClient": false,
+      "domain": "example.com",
+      "valuation": 4213977610.25,
+      "currency": "USD"
+    }
+  ]
+}
+```
+
+- The feed is rebuilt **once a day**, around 07:00 UTC; `asOf` is when the
+  feed you received was built. One pull a day is enough.
+- Rows are ordered newest first: `created` descending, then `id` ascending as
+  an integer.
+- **`id` is a string.** It is a signed 64-bit integer: it can be negative and
+  can exceed what a JSON number holds exactly, so store it as a string (or a
+  64-bit integer type), never as a float. It is stable for the life of the
+  order.
+- `created` is the UTC day the order was **last seen**, not the day it was
+  first listed.
+- `dealType`: `ASK` is a sell order, `BID` a buy order.
+- `pps` (price per share) and `valuation` (company valuation implied by the
+  price) are in `currency`. `maxSize` (order size, capped at 25,000,000) and
+  `minSize` (when stated) are in USD.
+- `managementFee` and `carry` are percent (`20.0` = 20%).
+- `structure` is one of `DIRECT`, `SPV`, `SPV-2`, `FORWARD`, `ANY`, `UNKNOWN`;
+  `shareClass` is a single value: `COMMON`, `PREFERRED`, `OPTION`, `ANY` or
+  `UNKNOWN`.
+- `null` means unknown, as everywhere in this API.
+- `503 UPSTREAM_ERROR` means the feed is temporarily unavailable; retry later.
+
 ### Idempotency
 
 Network failures happen mid-`POST`. Send `Idempotency-Key: <any string unique
@@ -229,10 +298,11 @@ Every error is the same envelope:
 | `SUBSCRIPTION_CLOSED` | 400 | Past the offer's investor deadline |
 | `OFFER_NOT_ORDERABLE` | 400 | The offer isn't accepting orders right now |
 | `UNAUTHORIZED` | 401 | Key missing/invalid |
-| `FORBIDDEN` | 403 | Your account can't perform this (suspended, not accredited, …) |
+| `FORBIDDEN` | 403 | Your account can't perform this (suspended, not accredited, …), or your key's permission sets don't cover the route |
 | `INVESTOR_SETUP_INCOMPLETE` | 403 | Your partner account's custody registration isn't complete — contact LBX |
 | `NOT_FOUND` | 404 | Unknown slug/id, or the resource isn't yours |
 | `UPSTREAM_ERROR` | 502 | A dependency failed; safe to retry with the same `Idempotency-Key` |
+| `UPSTREAM_ERROR` | 503 | Temporarily unavailable (the deal-flow feed); retry later |
 
 Messages are written for people and are stable enough to show to yours. A
 custody-platform rejection is translated into one of the sentences above; you
@@ -247,7 +317,8 @@ it is how we find the full story of a call on our side.
   appear; nothing existing is renamed or removed. Breaking changes would ship
   as `/v2/partner` with notice.
 - No rate limit is enforced today; please keep polling to a sensible cadence
-  (an order rarely changes status more than a few times a day).
+  (an order rarely changes status more than a few times a day; the deal-flow
+  feed changes once a day).
 
 ## Support
 

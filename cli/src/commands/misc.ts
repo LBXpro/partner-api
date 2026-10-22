@@ -3,28 +3,26 @@ import type { CommandResult } from "../output.ts";
 
 /**
  * Cheapest authenticated call there is — confirms the key is provisioned on
- * this environment without pulling a page of data.
+ * this environment. whoami answers any valid key, whatever permission sets it
+ * holds, so ping works for deal-flow-only keys too.
  */
 const ping: Command = {
   path: ["ping"],
   summary: "Check that the base URL and key work",
   usage: "lbx ping",
   async run({ client }): Promise<CommandResult> {
-    const data = await client.get<{ total?: number | null }>(
-      "/v1/partner/companies",
-      { limit: 1 },
-    );
+    const data = await client.get<{ partner?: string }>("/v1/partner/whoami");
     return {
       data: {
         ok: true,
         apiUrl: client.apiUrl,
         key: client.maskedKey,
-        companies: data.total ?? null,
+        partner: data.partner ?? null,
       },
       lines: [
         `ok  ${client.apiUrl}`,
         `key ${client.maskedKey}`,
-        `companies visible: ${data.total ?? "unknown"}`,
+        `partner ${data.partner ?? "unknown"}`,
       ],
     };
   },

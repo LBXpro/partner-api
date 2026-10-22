@@ -36,6 +36,7 @@ describe("resolveCommand", () => {
       "orders",
       "portfolio",
       "positions",
+      "deal-flow",
     ]);
   });
 });
@@ -49,6 +50,7 @@ describe("command definitions", () => {
       "opportunities list",
       "orders list", "orders documents",
       "portfolio show", "portfolio history", "positions history",
+      "deal-flow",
     ];
     const marked = commands.filter((c) => c.tabular).map((c) => c.path.join(" "));
     expect(marked.sort()).toEqual([...expected].sort());
@@ -117,7 +119,7 @@ describe("global behaviour", () => {
         headers: { "x-request-id": "req-7" },
       });
       expectOk(run);
-      expect(run.notes[0]).toBe("> GET https://api.test/v1/partner/companies?limit=1");
+      expect(run.notes[0]).toBe("> GET https://api.test/v1/partner/whoami");
       expect(run.notes[1]).toBe("> authorization: Bearer lbx_stg_…test");
       expect(run.notes.at(-1)).toMatch(/^< 200 .* \(x-request-id req-7\)$/);
       expect(run.notes.join("\n")).not.toContain("lbx_stg_test");

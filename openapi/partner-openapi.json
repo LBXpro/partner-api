@@ -1675,6 +1675,73 @@
           }
         }
       }
+    },
+    "/v1/partner/deal-flow": {
+      "get": {
+        "operationId": "partnerGetDealFlow",
+        "tags": [
+          "partner"
+        ],
+        "security": [
+          {
+            "partnerKey": []
+          }
+        ],
+        "summary": "Your deal feed: secondary-market orders seen in the last 28 days",
+        "description": "The whole feed in one response (a few hundred orders), newest first: by `created` descending, then `id` ascending as an integer. One row per order, its latest state. Rebuilt once a day; `asOf` says when. `id` is a string because it is a 64-bit integer.",
+        "responses": {
+          "200": {
+            "description": "The feed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PartnerDealFeed"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid partner key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "This key does not hold deal flow",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The feed has not been built yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -3113,6 +3180,170 @@
           "expired",
           "failed",
           "lost"
+        ]
+      },
+      "PartnerDeal": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^-?\\d+$",
+            "example": "-7301948827364519203",
+            "description": "Order id, stable for the life of the order. A signed 64-bit integer sent as a string: it can be negative and can exceed what a JSON number holds exactly."
+          },
+          "companyName": {
+            "type": "string",
+            "example": "Example Robotics"
+          },
+          "created": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "example": "2026-10-19",
+            "description": "Day the order was last seen (UTC)."
+          },
+          "dealType": {
+            "type": "string",
+            "enum": [
+              "ASK",
+              "BID"
+            ],
+            "description": "ASK = sell order, BID = buy order"
+          },
+          "pps": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Price per share, in `currency`"
+          },
+          "structure": {
+            "type": "string",
+            "enum": [
+              "DIRECT",
+              "SPV",
+              "SPV-2",
+              "FORWARD",
+              "ANY",
+              "UNKNOWN"
+            ]
+          },
+          "shareClass": {
+            "type": "string",
+            "enum": [
+              "COMMON",
+              "PREFERRED",
+              "OPTION",
+              "ANY",
+              "UNKNOWN"
+            ],
+            "description": "A single share class, never a list"
+          },
+          "managementFee": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Management fee in percent (20.0 = 20%)"
+          },
+          "carry": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Carry in percent (20.0 = 20%)"
+          },
+          "verification": {
+            "type": "boolean",
+            "description": "Whether the order is verified"
+          },
+          "maxNumberOfShares": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "maxSize": {
+            "type": "number",
+            "description": "Order size in USD, capped at 25,000,000"
+          },
+          "minNumberOfShares": {
+            "type": [
+              "integer",
+              "null"
+            ]
+          },
+          "minSize": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Minimum size in USD, when stated"
+          },
+          "directToClient": {
+            "type": "boolean"
+          },
+          "domain": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "example.com",
+            "description": "Company domain"
+          },
+          "valuation": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Company valuation implied by the price, in `currency`"
+          },
+          "currency": {
+            "type": "string",
+            "example": "USD"
+          }
+        },
+        "required": [
+          "id",
+          "companyName",
+          "created",
+          "dealType",
+          "pps",
+          "structure",
+          "shareClass",
+          "managementFee",
+          "carry",
+          "verification",
+          "maxNumberOfShares",
+          "maxSize",
+          "minNumberOfShares",
+          "minSize",
+          "directToClient",
+          "domain",
+          "valuation",
+          "currency"
+        ]
+      },
+      "PartnerDealFeed": {
+        "type": "object",
+        "properties": {
+          "asOf": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "example": "2026-10-20T07:00:12.657Z",
+            "description": "When this feed was built (UTC). It is rebuilt once a day."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PartnerDeal"
+            }
+          }
+        },
+        "required": [
+          "asOf",
+          "items"
         ]
       },
       "PartnerHolding": {

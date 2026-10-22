@@ -7,7 +7,8 @@ export const EXIT = {
   FAILURE: 1,
   /** 401 — key missing, invalid, or not provisioned on this environment. */
   UNAUTHORIZED: 2,
-  /** 403 — the key works but the account is not eligible for this call. */
+  /** 403 — the key works but is not allowed this call: the account is not
+   *  eligible, or the key does not hold the call's permission set. */
   NOT_ELIGIBLE: 3,
   /** EX_USAGE — unknown command, missing argument, malformed flag. */
   USAGE: 64,
@@ -77,8 +78,10 @@ export class ApiError extends CliError {
 }
 
 /**
- * 401 means the key is wrong; 403 means the key is fine but the account is
- * not eligible (suspended, not accredited, custody registration incomplete).
+ * 401 means the key is wrong; 403 means the key is fine but not allowed the
+ * call: the account is not eligible (suspended, not accredited, custody
+ * registration incomplete), or the key does not hold the call's permission
+ * set (`core` or `deal-flow`).
  * They need different fixes, so they get different exit codes. 404 stays a
  * plain failure: it covers both "unknown id" and "not yours".
  */

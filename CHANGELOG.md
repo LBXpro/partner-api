@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.6 — 2026-10-22 — deal flow and permission sets (additive)
+
+- `GET /v1/partner/deal-flow` — `{ asOf, items }`: every secondary-market
+  order seen in the last 28 days, one row per order in its latest state, the
+  whole feed in one response. Rebuilt once a day (around 07:00 UTC); `asOf`
+  says when. `id` is a signed 64-bit integer sent as a **string** — keep it
+  a string. `created` is the day the order was last seen. Field notes in the
+  README under *Deal flow*.
+- Keys now hold **permission sets**: `core` (market data, opportunities,
+  orders, portfolio) and `deal-flow`. A call outside a key's sets answers
+  `403 FORBIDDEN` — *This partner key does not include …*. Existing keys
+  hold `core`; nothing changes for them. `whoami` answers any valid key.
+- `UPSTREAM_ERROR` can now also be a `503`: the deal-flow feed is
+  temporarily unavailable; retry later.
+- CLI 0.4.0: `lbx deal-flow` (table, `--csv`, `--json`). `lbx ping` now calls
+  `whoami`, so it works with any key: it prints the partner name, and its
+  `--json` has `partner` in place of `companies`.
+- `scripts/smoke.sh` checks the permission sets the key holds, runs only
+  those checks, and expects `403` from the rest.
+
 ## v1.5 — 2026-10-05 — spread and calculation type on daily prices (additive)
 
 - Both daily-price responses add `spreadPercent` and `calculationType` on

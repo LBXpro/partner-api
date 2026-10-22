@@ -2,7 +2,7 @@ import type { Command } from "./command.ts";
 import { commands, groupCommands } from "./commands/index.ts";
 import { DEFAULT_API_URL } from "./config.ts";
 
-export const VERSION = "0.3.1";
+export const VERSION = "0.4.0";
 
 const GLOBAL_OPTIONS: [string, string][] = [
   ["--api-key-file <path>", "File whose first line is the partner key (default: $LBX_KEY_FILE)"],

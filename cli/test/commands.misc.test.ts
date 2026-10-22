@@ -2,41 +2,41 @@ import { describe, expect, test } from "bun:test";
 import { expectOk, runCli } from "./helpers.ts";
 
 describe("ping", () => {
-  test("makes the cheapest authenticated call there is", async () => {
-    const run = await runCli(["ping"], { body: { total: 967, items: [] } });
+  const whoami = { partner: "acme", environment: "staging", custodyEnvironment: "test" };
+
+  test("calls whoami, which answers any valid key whatever its permission sets", async () => {
+    const run = await runCli(["ping"], { body: whoami });
     expectOk(run);
     const request = run.stub.only();
-    expect(request.path).toBe("/v1/partner/companies");
-    expect(request.query.limit).toEqual(["1"]);
+    expect(request.path).toBe("/v1/partner/whoami");
+    expect(request.query).toEqual({});
   });
 
-  test("reports the base URL it reached and what it can see", async () => {
-    const stdout = expectOk(await runCli(["ping"], { body: { total: 967, items: [] } }));
+  test("reports the base URL it reached and the partner the key belongs to", async () => {
+    const stdout = expectOk(await runCli(["ping"], { body: whoami }));
     expect(stdout).toContain("ok  https://api.test");
-    expect(stdout).toContain("companies visible: 967");
+    expect(stdout).toContain("partner acme");
   });
 
   test("honours --api", async () => {
-    const run = await runCli(["ping", "--api", "https://other.test/"], {
-      body: { total: 1, items: [] },
-    });
+    const run = await runCli(["ping", "--api", "https://other.test/"], { body: whoami });
     const stdout = expectOk(run);
-    expect(run.stub.only().url).toStartWith("https://other.test/v1/partner/companies");
+    expect(run.stub.only().url).toStartWith("https://other.test/v1/partner/whoami");
     expect(stdout).toContain("ok  https://other.test");
   });
 
   test("--json is machine-readable", async () => {
-    const stdout = expectOk(await runCli(["ping", "--json"], { body: { total: 5, items: [] } }));
+    const stdout = expectOk(await runCli(["ping", "--json"], { body: whoami }));
     expect(JSON.parse(stdout)).toEqual({
       ok: true,
       apiUrl: "https://api.test",
       key: "lbx_stg_…test",
-      companies: 5,
+      partner: "acme",
     });
   });
 
   test("shows which key it used, masked", async () => {
-    const stdout = expectOk(await runCli(["ping"], { body: { total: 1, items: [] } }));
+    const stdout = expectOk(await runCli(["ping"], { body: whoami }));
     expect(stdout).toContain("key lbx_stg_…test");
     expect(stdout).not.toContain("lbx_stg_test");
   });

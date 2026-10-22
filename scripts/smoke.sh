@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Partner API smoke test — runs the read surface end-to-end and, with
 # --order <slug> <amount>, the order flow up to the signing step (then
-# cancels, so nothing is left dangling).
+# cancels, so nothing is left dangling). It checks what the key's permission
+# sets cover (core, deal-flow) and that the rest answers 403.
 #
 #   LBX_API=https://api-staging.lbxpro.tech LBX_KEY=lbx_stg_… scripts/smoke.sh
 #   … scripts/smoke.sh --order ai-infra-basket-aug20-test 5600
@@ -27,55 +28,72 @@ check "wrong key → 401"            401 "$(curl -s -o /dev/null -w '%{http_code
 
 check "whoami"                     200 "$(get '/v1/partner/whoami')" "$(jq -r '"partner=\(.partner) env=\(.environment) custody=\(.custodyEnvironment)"' "$TMP/body" 2>/dev/null)"
 
-echo "data"
-check "companies list"             200 "$(get '/v1/partner/companies?limit=5')" "total=$(jq -r .total "$TMP/body" 2>/dev/null)"
-SLUG=$(jq -r '.items[0].slug' "$TMP/body" 2>/dev/null)
-check "company detail ($SLUG)"     200 "$(get "/v1/partner/companies/$SLUG")"
-check "company charts"             200 "$(get "/v1/partner/companies/$SLUG/charts")" "points=$(jq '.pricingHistory|length' "$TMP/body" 2>/dev/null)"
-check "company funding"            200 "$(get "/v1/partner/companies/$SLUG/funding")" "rounds=$(jq '.rounds|length' "$TMP/body" 2>/dev/null)"
-check "unknown company → 404"      404 "$(get '/v1/partner/companies/no-such-company-xyz')"
-check "daily prices (bulk, latest)" 200 "$(get '/v1/partner/daily-prices')" "date=$(jq -r .date "$TMP/body" 2>/dev/null) n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
-PSLUG=$(jq -r '.items[0].slug // empty' "$TMP/body" 2>/dev/null)
-[ -n "$PSLUG" ] && check "daily prices ($PSLUG)"   200 "$(get "/v1/partner/companies/$PSLUG/daily-prices")" "points=$(jq '.points|length' "$TMP/body" 2>/dev/null)"
-check "daily prices bad date → 400"  400 "$(get '/v1/partner/daily-prices?date=today')"
-check "indexes"                    200 "$(get '/v1/partner/indexes')" "n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
-check "lbx25 history"              200 "$(get '/v1/partner/indexes/lbx25/history?months=6')" "points=$(jq '.history|length' "$TMP/body" 2>/dev/null)"
+# Which permission sets the key holds: a call outside them answers 403.
+CORE=$(get '/v1/partner/companies?limit=1'); FLOW=$(get '/v1/partner/deal-flow')
+has() { [ "$1" = 200 ] && echo yes || echo no; }
+echo "  permission sets: core=$(has "$CORE") deal-flow=$(has "$FLOW")"
 
-echo "opportunities"
-check "list (public only)"         200 "$(get '/v1/partner/opportunities')" "slugs=$(jq -r '[.items[].slug]|join(",")' "$TMP/body" 2>/dev/null)"
-NONPUBLIC=$(jq -r '[.items[] | select(.visibility != "public")] | length' "$TMP/body" 2>/dev/null)
-check "no non-public offers leak"  0 "$NONPUBLIC"
-OSLUG=$(jq -r '.items[0].slug // empty' "$TMP/body" 2>/dev/null)
-[ -n "$OSLUG" ] && check "detail ($OSLUG)" 200 "$(get "/v1/partner/opportunities/$OSLUG")"
+if [ "$CORE" = 200 ]; then
+  echo "data"
+  check "companies list"             200 "$(get '/v1/partner/companies?limit=5')" "total=$(jq -r .total "$TMP/body" 2>/dev/null)"
+  SLUG=$(jq -r '.items[0].slug' "$TMP/body" 2>/dev/null)
+  check "company detail ($SLUG)"     200 "$(get "/v1/partner/companies/$SLUG")"
+  check "company charts"             200 "$(get "/v1/partner/companies/$SLUG/charts")" "points=$(jq '.pricingHistory|length' "$TMP/body" 2>/dev/null)"
+  check "company funding"            200 "$(get "/v1/partner/companies/$SLUG/funding")" "rounds=$(jq '.rounds|length' "$TMP/body" 2>/dev/null)"
+  check "unknown company → 404"      404 "$(get '/v1/partner/companies/no-such-company-xyz')"
+  check "daily prices (bulk, latest)" 200 "$(get '/v1/partner/daily-prices')" "date=$(jq -r .date "$TMP/body" 2>/dev/null) n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
+  PSLUG=$(jq -r '.items[0].slug // empty' "$TMP/body" 2>/dev/null)
+  [ -n "$PSLUG" ] && check "daily prices ($PSLUG)"   200 "$(get "/v1/partner/companies/$PSLUG/daily-prices")" "points=$(jq '.points|length' "$TMP/body" 2>/dev/null)"
+  check "daily prices bad date → 400"  400 "$(get '/v1/partner/daily-prices?date=today')"
+  check "indexes"                    200 "$(get '/v1/partner/indexes')" "n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
+  check "lbx25 history"              200 "$(get '/v1/partner/indexes/lbx25/history?months=6')" "points=$(jq '.history|length' "$TMP/body" 2>/dev/null)"
 
-echo "portfolio"
-check "portfolio"                  200 "$(get '/v1/partner/portfolio')" "positions=$(jq '.positions|length' "$TMP/body" 2>/dev/null) value=$(jq -r .summary.valueTotal "$TMP/body" 2>/dev/null)"
-check "portfolio history"          200 "$(get '/v1/partner/portfolio/history')" "points=$(jq '.points|length' "$TMP/body" 2>/dev/null)"
-check "unknown position → 404"     404 "$(get '/v1/partner/positions/000000000000000000000000/history')"
+  echo "opportunities"
+  check "list (public only)"         200 "$(get '/v1/partner/opportunities')" "slugs=$(jq -r '[.items[].slug]|join(",")' "$TMP/body" 2>/dev/null)"
+  NONPUBLIC=$(jq -r '[.items[] | select(.visibility != "public")] | length' "$TMP/body" 2>/dev/null)
+  check "no non-public offers leak"  0 "$NONPUBLIC"
+  OSLUG=$(jq -r '.items[0].slug // empty' "$TMP/body" 2>/dev/null)
+  [ -n "$OSLUG" ] && check "detail ($OSLUG)" 200 "$(get "/v1/partner/opportunities/$OSLUG")"
 
-echo "orders (read)"
-check "list orders"                200 "$(get '/v1/partner/orders')" "n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
-check "unknown order → 404"        404 "$(get '/v1/partner/orders/000000000000000000000000')"
+  echo "portfolio"
+  check "portfolio"                  200 "$(get '/v1/partner/portfolio')" "positions=$(jq '.positions|length' "$TMP/body" 2>/dev/null) value=$(jq -r .summary.valueTotal "$TMP/body" 2>/dev/null)"
+  check "portfolio history"          200 "$(get '/v1/partner/portfolio/history')" "points=$(jq '.points|length' "$TMP/body" 2>/dev/null)"
+  check "unknown position → 404"     404 "$(get '/v1/partner/positions/000000000000000000000000/history')"
 
-if [ "${1:-}" = "--order" ]; then
-  SLUG_O="$2"; AMOUNT="$3"; IK="smoke-$(date +%s)"
-  echo "orders (write) — $SLUG_O amount=$AMOUNT"
-  code=$(post '/v1/partner/orders' -H "Idempotency-Key: $IK" -d "{\"opportunitySlug\":\"$SLUG_O\",\"amount\":$AMOUNT,\"returnUrl\":\"https://example.com/signed\"}")
-  check "create → awaiting_signature" 200 "$code" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null) units=$(jq -r .order.numberOfUnits "$TMP/body" 2>/dev/null) total=$(jq -r .order.totalAmount "$TMP/body" 2>/dev/null)"
-  [ "$code" != 200 ] && { echo "    $(jq -c . "$TMP/body" 2>/dev/null)"; }
-  ID=$(jq -r '.order.id // empty' "$TMP/body" 2>/dev/null)
-  SIGN=$(jq -r '.order.signingUrl // empty' "$TMP/body" 2>/dev/null)
-  check "signingUrl present"       1 "$([ -n "$SIGN" ] && echo 1 || echo 0)"
-  if [ -n "$ID" ]; then
-    code=$(post '/v1/partner/orders' -H "Idempotency-Key: $IK" -d "{\"opportunitySlug\":\"$SLUG_O\",\"amount\":$AMOUNT}")
-    check "same Idempotency-Key → same order" "$ID" "$(jq -r .order.id "$TMP/body" 2>/dev/null)"
-    check "get order"              200 "$(get "/v1/partner/orders/$ID")" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null)"
-    check "confirm before signing → 400" 400 "$(post "/v1/partner/orders/$ID/confirm-signing")" "$(jq -r .error "$TMP/body" 2>/dev/null | cut -c1-40)"
-    check "resume-signing → fresh url" 200 "$(post "/v1/partner/orders/$ID/resume-signing" -d '{}')"
-    check "legal documents"        200 "$(get "/v1/partner/orders/$ID/opportunity-documents")" "docs=$(jq '.documents|length' "$TMP/body" 2>/dev/null)"
-    check "cancel → cancelled"     200 "$(post "/v1/partner/orders/$ID/cancel" -d '{"note":"smoke test"}')" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null)"
-    check "cancel again (idempotent)" 200 "$(post "/v1/partner/orders/$ID/cancel" -d '{}')"
+  echo "orders (read)"
+  check "list orders"                200 "$(get '/v1/partner/orders')" "n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
+  check "unknown order → 404"        404 "$(get '/v1/partner/orders/000000000000000000000000')"
+
+  if [ "${1:-}" = "--order" ]; then
+    SLUG_O="$2"; AMOUNT="$3"; IK="smoke-$(date +%s)"
+    echo "orders (write) — $SLUG_O amount=$AMOUNT"
+    code=$(post '/v1/partner/orders' -H "Idempotency-Key: $IK" -d "{\"opportunitySlug\":\"$SLUG_O\",\"amount\":$AMOUNT,\"returnUrl\":\"https://example.com/signed\"}")
+    check "create → awaiting_signature" 200 "$code" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null) units=$(jq -r .order.numberOfUnits "$TMP/body" 2>/dev/null) total=$(jq -r .order.totalAmount "$TMP/body" 2>/dev/null)"
+    [ "$code" != 200 ] && { echo "    $(jq -c . "$TMP/body" 2>/dev/null)"; }
+    ID=$(jq -r '.order.id // empty' "$TMP/body" 2>/dev/null)
+    SIGN=$(jq -r '.order.signingUrl // empty' "$TMP/body" 2>/dev/null)
+    check "signingUrl present"       1 "$([ -n "$SIGN" ] && echo 1 || echo 0)"
+    if [ -n "$ID" ]; then
+      code=$(post '/v1/partner/orders' -H "Idempotency-Key: $IK" -d "{\"opportunitySlug\":\"$SLUG_O\",\"amount\":$AMOUNT}")
+      check "same Idempotency-Key → same order" "$ID" "$(jq -r .order.id "$TMP/body" 2>/dev/null)"
+      check "get order"              200 "$(get "/v1/partner/orders/$ID")" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null)"
+      check "confirm before signing → 400" 400 "$(post "/v1/partner/orders/$ID/confirm-signing")" "$(jq -r .error "$TMP/body" 2>/dev/null | cut -c1-40)"
+      check "resume-signing → fresh url" 200 "$(post "/v1/partner/orders/$ID/resume-signing" -d '{}')"
+      check "legal documents"        200 "$(get "/v1/partner/orders/$ID/opportunity-documents")" "docs=$(jq '.documents|length' "$TMP/body" 2>/dev/null)"
+      check "cancel → cancelled"     200 "$(post "/v1/partner/orders/$ID/cancel" -d '{"note":"smoke test"}')" "status=$(jq -r .order.status "$TMP/body" 2>/dev/null)"
+      check "cancel again (idempotent)" 200 "$(post "/v1/partner/orders/$ID/cancel" -d '{}')"
+    fi
   fi
+else
+  check "core routes → 403 (key has no core)"  403 "$CORE"
+fi
+
+echo "deal flow"
+if [ "$FLOW" = 200 ]; then
+  check "deal flow"                  200 "$(get '/v1/partner/deal-flow')" "asOf=$(jq -r .asOf "$TMP/body" 2>/dev/null) n=$(jq '.items|length' "$TMP/body" 2>/dev/null)"
+  check "every id is a string"       '["string"]' "$(jq -c '[.items[].id|type]|unique' "$TMP/body" 2>/dev/null)"
+else
+  check "deal flow → 403 (key has no deal-flow)" 403 "$FLOW"
 fi
 
 echo

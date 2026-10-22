@@ -397,6 +397,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/partner/deal-flow": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Your deal feed: secondary-market orders seen in the last 28 days
+         * @description The whole feed in one response (a few hundred orders), newest first: by `created` descending, then `id` ascending as an integer. One row per order, its latest state. Rebuilt once a day; `asOf` says when. `id` is a string because it is a 64-bit integer.
+         */
+        get: operations["partnerGetDealFlow"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -688,6 +708,64 @@ export interface components {
         };
         /** @enum {string} */
         OrderStatus: "created" | "awaiting_signature" | "documents_signed" | "awaiting_payment" | "payment_details_sent" | "payment_received" | "accepted" | "completed" | "cancelled" | "rejected" | "expired" | "failed" | "lost";
+        PartnerDeal: {
+            /**
+             * @description Order id, stable for the life of the order. A signed 64-bit integer sent as a string: it can be negative and can exceed what a JSON number holds exactly.
+             * @example -7301948827364519203
+             */
+            id: string;
+            /** @example Example Robotics */
+            companyName: string;
+            /**
+             * @description Day the order was last seen (UTC).
+             * @example 2026-10-19
+             */
+            created: string;
+            /**
+             * @description ASK = sell order, BID = buy order
+             * @enum {string}
+             */
+            dealType: "ASK" | "BID";
+            /** @description Price per share, in `currency` */
+            pps: number | null;
+            /** @enum {string} */
+            structure: "DIRECT" | "SPV" | "SPV-2" | "FORWARD" | "ANY" | "UNKNOWN";
+            /**
+             * @description A single share class, never a list
+             * @enum {string}
+             */
+            shareClass: "COMMON" | "PREFERRED" | "OPTION" | "ANY" | "UNKNOWN";
+            /** @description Management fee in percent (20.0 = 20%) */
+            managementFee: number | null;
+            /** @description Carry in percent (20.0 = 20%) */
+            carry: number | null;
+            /** @description Whether the order is verified */
+            verification: boolean;
+            maxNumberOfShares: number | null;
+            /** @description Order size in USD, capped at 25,000,000 */
+            maxSize: number;
+            minNumberOfShares: number | null;
+            /** @description Minimum size in USD, when stated */
+            minSize: number | null;
+            directToClient: boolean;
+            /**
+             * @description Company domain
+             * @example example.com
+             */
+            domain: string | null;
+            /** @description Company valuation implied by the price, in `currency` */
+            valuation: number | null;
+            /** @example USD */
+            currency: string;
+        };
+        PartnerDealFeed: {
+            /**
+             * @description When this feed was built (UTC). It is rebuilt once a day.
+             * @example 2026-10-20T07:00:12.657Z
+             */
+            asOf: string | null;
+            items: components["schemas"]["PartnerDeal"][];
+        };
         PartnerHolding: {
             opportunitySlug: string;
             opportunityName: string;
@@ -1996,6 +2074,62 @@ export interface operations {
             };
             /** @description Not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    partnerGetDealFlow: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The feed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PartnerDealFeed"];
+                };
+            };
+            /** @description Missing or invalid partner key */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description This key does not hold deal flow */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description The feed has not been built yet */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

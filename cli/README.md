@@ -80,6 +80,7 @@ lbx ping --timeout 5     # per-request budget in seconds (default 30, 0 disables
 | `lbx portfolio show [--lots]` | Holdings per offer, the lots behind them, and totals |
 | `lbx portfolio history` | Portfolio value over time |
 | `lbx positions history <id>` | One lot's value over time (`id` from the lots table) |
+| `lbx deal-flow` | Your deal-flow feed, newest first (needs the `deal-flow` permission set) |
 
 `lbx <group>` (or `lbx <group> --help`) lists a group's commands;
 `lbx <command> --help` prints that command's flags.
@@ -164,6 +165,22 @@ lbx orders file <id> <docUid> --out signed.pdf   # exact path
 lbx orders file <id> <docUid> --out - > signed.pdf  # bytes to stdout
 ```
 
+### Deal flow
+
+```sh
+lbx deal-flow                                   # the whole feed, newest first
+lbx deal-flow --csv > deal-flow.csv             # every row, numbers raw
+lbx deal-flow --json | jq '.items[] | select(.dealType == "ASK")'
+```
+
+The feed is rebuilt once a day, so one pull a day is enough; the table title
+shows when it was built. `id` is a 64-bit integer sent as a string, and the
+CLI keeps it as written in every format. A spreadsheet opening the CSV may
+still round it: import that column as text.
+
+`lbx ping` and `lbx whoami` work with any key; every other command needs the
+`core` permission set.
+
 ## Output
 
 - default: an aligned table. `null` renders as `—`, meaning "LBX has no value"
@@ -182,7 +199,7 @@ lbx orders file <id> <docUid> --out - > signed.pdf  # bytes to stdout
 | `0` | Success |
 | `1` | API error (`404`, `400`, `5xx`, …) or a transport failure |
 | `2` | `401` `UNAUTHORIZED` — key missing, invalid, or not provisioned on this environment |
-| `3` | `403` `FORBIDDEN` / `INVESTOR_SETUP_INCOMPLETE` — the key works but the account is not eligible (suspended, not accredited, custody registration incomplete); contact LBX |
+| `3` | `403` `FORBIDDEN` / `INVESTOR_SETUP_INCOMPLETE` — the key works but is not allowed the call: the account is not eligible (suspended, not accredited, custody registration incomplete), or the key's permission sets don't cover the command; contact LBX |
 | `64` | Bad usage — unknown command, missing argument, invalid flag |
 | `75` | Try again later — `confirm-signing` found the envelope not signed yet |
 
