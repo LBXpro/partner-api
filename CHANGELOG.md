@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-10-27 — production environment (docs)
+
+The partner API is documented on production as well as staging:
+`https://api.lbxpro.tech` (keys `lbx_prd_…`, custody **live**) beside
+`https://api-staging.lbxpro.tech` (keys `lbx_stg_…`, custody **test**). Your
+LBX account manager tells you which environment is yours. A key works only on
+the environment it was issued for. See *Environments* in the README. No field
+or endpoint changes.
+
 ## v1.6 — 2026-10-22 — deal flow and permission sets (additive)
 
 - `GET /v1/partner/deal-flow` — `{ asOf, items }`: every secondary-market
