@@ -34,7 +34,12 @@ export LBX_KEY_FILE=~/.config/lbx/partner-key  # a file whose first line is the 
 chmod 600 ~/.config/lbx/partner-key
 
 export LBX_API=https://api-staging.lbxpro.tech  # optional, this is the default
+# production partners: export LBX_API=https://api.lbxpro.tech
 ```
+
+Your LBX account manager tells you whether your key is for production or
+staging. The CLI defaults to staging, so a production key needs `LBX_API` (or
+`--api`) set to the production URL.
 
 Per call, `--api-key-file <path>` and `--api <url>` override those. There is
 also `--api-key <key>`, but an inline key lands in your shell history and in

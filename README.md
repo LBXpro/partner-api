@@ -4,20 +4,42 @@ Programmatic access to LBX private-market data, the public opportunity
 catalog, order placement for a partner's own investor account, and a daily
 deal-flow feed of secondary-market orders.
 
-- **Base URL**: `https://api-staging.lbxpro.tech` (partner access runs against
-  the LBX staging environment; production access is arranged separately)
-- **Interactive docs**: https://api-staging.lbxpro.tech/v1/partner/docs
+- **Base URL**: one per environment. Your LBX account manager tells you which
+  one your integration uses (see [Environments](#environments))
+  - Production: `https://api.lbxpro.tech`
+  - Staging: `https://api-staging.lbxpro.tech`
+- **Interactive docs**: https://api.lbxpro.tech/v1/partner/docs (production) ·
+  https://api-staging.lbxpro.tech/v1/partner/docs (staging)
 - **Machine-readable spec**: [`openapi/partner-openapi.json`](openapi/partner-openapi.json)
   (OpenAPI 3.1) · TypeScript types: [`openapi/partner-api.types.ts`](openapi/partner-api.types.ts)
 - **Worked examples**: [`examples/curl.md`](examples/curl.md)
 - **CLI**: [`cli/`](cli/README.md) — `lbx companies list`, `lbx orders create`, `lbx deal-flow`, …
+
+## Environments
+
+The partner API runs on two LBX environments. Some partners integrate
+against production, others against staging. **Your LBX account manager tells
+you which environment is yours** and issues your key for it. If you haven't
+been told, ask them before you start.
+
+| Environment | Base URL | Key prefix | Orders settle in |
+| --- | --- | --- | --- |
+| Production | `https://api.lbxpro.tech` | `lbx_prd_` | Custody **live**: real money moves |
+| Staging | `https://api-staging.lbxpro.tech` | `lbx_stg_` | Custody **test**: nothing moves real money |
+
+A key works only on the environment it was issued for. On the other one,
+every call answers `401 UNAUTHORIZED`. The two environments are separate end
+to end: keys, orders, portfolio and custody. An offer can be orderable on one
+and not on the other (see `custodyAssetId` under [Opportunities](#opportunities)).
+The examples in this guide use the staging URL; swap in production's if that
+is your environment.
 
 ## Authentication
 
 Every request carries your partner key as a bearer token:
 
 ```
-Authorization: Bearer lbx_stg_…
+Authorization: Bearer lbx_prd_…   (production) / lbx_stg_…   (staging)
 ```
 
 Keys are issued by LBX per partner and scoped to your partner account. Keep
@@ -50,7 +72,9 @@ whether orders placed here settle in the custody **test** environment or the
 { "partner": "acme", "environment": "staging", "custodyEnvironment": "test" }
 ```
 
-On staging nothing you order moves real money.
+On staging nothing you order moves real money. On production `whoami`
+answers `"environment": "production"`, `"custodyEnvironment": "live"`, and
+orders settle for real.
 
 ## What you can do
 

@@ -1,8 +1,8 @@
 # End-to-end with curl
 
 ```bash
-export LBX_API=https://api-staging.lbxpro.tech
-export LBX_KEY=lbx_stg_…            # your partner key
+export LBX_API=https://api-staging.lbxpro.tech   # production: https://api.lbxpro.tech (your LBX account manager tells you which)
+export LBX_KEY=lbx_stg_…            # your partner key (lbx_prd_… on production)
 auth=(-H "Authorization: Bearer $LBX_KEY")
 ```
 
