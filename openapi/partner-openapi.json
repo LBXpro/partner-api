@@ -619,17 +619,17 @@
           }
         ],
         "summary": "Daily prices (institutional, retail, spread, calculation type) for every priced company on one day",
-        "description": "Bulk snapshot: every company that has a price on `date` (default: the latest day with prices). Use this for a daily pull instead of one call per company.",
+        "description": "Bulk snapshot: every company that has a price on `date` (default: the latest complete day with prices — a day still being loaded is skipped). Use this for a daily pull instead of one call per company.",
         "parameters": [
           {
             "schema": {
               "type": "string",
               "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
               "example": "2026-09-08",
-              "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest day that has prices."
+              "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest complete day that has prices (a day still being loaded is skipped)."
             },
             "required": false,
-            "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest day that has prices.",
+            "description": "Pricing day (UTC, YYYY-MM-DD). Default: the latest complete day that has prices (a day still being loaded is skipped).",
             "name": "date",
             "in": "query"
           }
@@ -1749,8 +1749,15 @@
       "ActivityHistoryPoint": {
         "type": "object",
         "properties": {
+          "month": {
+            "type": "string",
+            "description": "The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. Before November 2026 the history is quarterly; a quarterly score was calculated on the 1st after its quarter, so its month is that one (\"Q3 2026\" → \"2026-10\").",
+            "example": "2026-11"
+          },
           "quarter": {
-            "type": "string"
+            "type": "string",
+            "description": "The quarter the score's data ends in, as the quarterly labels were: \"Q4 2026\" for the 2026-11 score, \"Q3 2026\" for 2026-10.",
+            "example": "Q4 2026"
           },
           "activityScore": {
             "type": [
@@ -1760,6 +1767,7 @@
           }
         },
         "required": [
+          "month",
           "quarter",
           "activityScore"
         ]
@@ -1835,6 +1843,9 @@
       "CompanyChartsResponse": {
         "type": "object",
         "properties": {
+          "slug": {
+            "type": "string"
+          },
           "pricingHistory": {
             "type": "array",
             "items": {
@@ -1849,6 +1860,7 @@
           }
         },
         "required": [
+          "slug",
           "pricingHistory",
           "fundingRounds"
         ]
@@ -2061,6 +2073,9 @@
           "company": {
             "type": "string"
           },
+          "slug": {
+            "type": "string"
+          },
           "rounds": {
             "type": "array",
             "items": {
@@ -2070,6 +2085,7 @@
         },
         "required": [
           "company",
+          "slug",
           "rounds"
         ]
       },
