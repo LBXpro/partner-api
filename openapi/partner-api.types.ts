@@ -121,7 +121,7 @@ export interface paths {
         };
         /**
          * Daily prices (institutional, retail, spread, calculation type) for every priced company on one day
-         * @description Bulk snapshot: every company that has a price on `date` (default: the latest day with prices). Use this for a daily pull instead of one call per company.
+         * @description Bulk snapshot: every company that has a price on `date` (default: the latest complete day with prices — a day still being loaded is skipped). Use this for a daily pull instead of one call per company.
          */
         get: operations["partnerListDailyPrices"];
         put?: never;
@@ -422,6 +422,15 @@ export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
         ActivityHistoryPoint: {
+            /**
+             * @description The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. Before November 2026 the history is quarterly; a quarterly score was calculated on the 1st after its quarter, so its month is that one ("Q3 2026" → "2026-10").
+             * @example 2026-11
+             */
+            month: string;
+            /**
+             * @description The quarter the score's data ends in, as the quarterly labels were: "Q4 2026" for the 2026-11 score, "Q3 2026" for 2026-10.
+             * @example Q4 2026
+             */
             quarter: string;
             activityScore: number | null;
         };
@@ -439,6 +448,7 @@ export interface components {
             premium: number | null;
         };
         CompanyChartsResponse: {
+            slug: string;
             pricingHistory: components["schemas"]["ChartPricingPoint"][];
             fundingRounds: components["schemas"]["ChartFundingPoint"][];
         };
@@ -483,6 +493,7 @@ export interface components {
         };
         CompanyFundingResponse: {
             company: string;
+            slug: string;
             rounds: components["schemas"]["FundingRound"][];
         };
         CompanyListItem: {
@@ -1316,7 +1327,7 @@ export interface operations {
     partnerListDailyPrices: {
         parameters: {
             query?: {
-                /** @description Pricing day (UTC, YYYY-MM-DD). Default: the latest day that has prices. */
+                /** @description Pricing day (UTC, YYYY-MM-DD). Default: the latest complete day that has prices (a day still being loaded is skipped). */
                 date?: string;
             };
             header?: never;

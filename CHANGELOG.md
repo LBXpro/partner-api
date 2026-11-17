@@ -1,5 +1,32 @@
 # Changelog
 
+## v1.7 — 2026-11-16 — monthly activity history (additive fields; history changes shape)
+
+- The activity score is now calculated every month (on the 1st) and
+  published on the 2nd, around 09:00 UTC; it was quarterly. `activityHistory`
+  in `GET /v1/partner/companies/{slug}` gets one point per month from
+  November 2026; the points before that stay quarterly. The window is still
+  the last 8 quarters (24 months back from the latest point), so the array
+  grows from up to 8 points to up to 24 as monthly points build up.
+- `ActivityHistoryPoint.month` (new, always present): the month the score was
+  calculated in, `YYYY-MM`. A quarterly point is labelled with the month
+  after its quarter (`Q3 2026` → `2026-10`). Key and compare points by
+  `month`.
+- `ActivityHistoryPoint.quarter` keeps its meaning: the quarter the score's
+  data ends in (`Q4 2026` for `2026-11`). Monthly points in the same quarter
+  share it, so it is **no longer unique** within a history: a client keyed
+  on `quarter` overwrites points.
+- `activityHistory` is ordered oldest first by `month`. Before, it was
+  sorted by the `quarter` label as text, which misordered points across a
+  year boundary; any re-sorting you added for that is no longer needed.
+- Activity scores are stored with 2 decimals.
+- `slug` (new) in `GET /v1/partner/companies/{slug}/charts` and
+  `/funding`: the company's current slug. A renamed company's former slug
+  still resolves; the response tells you which slug to store.
+- `GET /v1/partner/daily-prices` without `date` skips a day that is still
+  being loaded: when the newest day has under 90% of the previous day's
+  companies, the previous day is served. No change to the response.
+
 ## 2026-10-27 — production environment (docs)
 
 The partner API is documented on production as well as staging:
