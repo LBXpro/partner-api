@@ -281,8 +281,10 @@ Needs the `deal-flow` permission set. Your key decides which feed you read.
 }
 ```
 
-- The feed is rebuilt **once a day**, around 07:00 UTC; `asOf` is when the
-  feed you received was built. One pull a day is enough.
+- The feed is rebuilt **once a day**, shortly after 08:00 UTC (07:00 UTC from
+  late March to late October); `asOf` is when the feed you received was
+  built. One pull a day is enough: a pull after 08:15 UTC gets the day's
+  build all year round.
 - Rows are ordered newest first: `created` descending, then `id` ascending as
   an integer.
 - **`id` is a string.** It is a signed 64-bit integer: it can be negative and
