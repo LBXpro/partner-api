@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-20 — deal-flow rebuild time (docs)
+
+The README said the deal-flow feed is rebuilt around 07:00 UTC. That holds
+from late March to late October; the rest of the year it is rebuilt shortly
+after 08:00 UTC. A pull after 08:15 UTC gets the day's build all year round,
+and `asOf` always says when the feed you received was built. No field or
+endpoint changes.
+
 ## v1.7 — 2026-11-16 — monthly activity history (additive fields; history changes shape)
 
 - The activity score is now calculated every month (on the 1st) and
