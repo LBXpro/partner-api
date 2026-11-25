@@ -1,20 +1,33 @@
 # Changelog
 
-## v1.8 — 2026-11-26 — investors on funding rounds (additive)
+## v1.8 — 2026-11-27 — investors on funding rounds; activity history by month only (`quarter` deprecated)
+
+### Funding rounds (additive)
 
 - `FundingRound.investors` (new, always present) in
   `GET /v1/partner/companies/{slug}/funding`: the names of investors in the
   round, as recorded by LBX. The lead investor is not marked.
 - An empty list means LBX has no investor data for that round, not that it
-  had no investors. Most rounds carry investor data.
+  had no investors.
 - `/charts` is unchanged: its `fundingRounds` carry no investors.
+
+### Activity history
+
+- `activityHistory` in `GET /v1/partner/companies/{slug}` holds one point per
+  month only (still up to 24 months back from the latest point).
+- `ActivityHistoryPoint.quarter` is deprecated and will be removed in the
+  next version: use `month`. Its value does not change (the calendar quarter
+  of the month before `month`; several points share it).
+- `activityHistory` in `GET /v1/partner/opportunities/{slug}` is deprecated
+  with `OpportunityActivityPoint`, and will be removed in the next version;
+  the company detail has the history.
 
 ## v1.7 — 2026-11-16 — monthly activity history (additive fields; history changes shape)
 
-- The activity score is now calculated every month (on the 1st) and
-  published on the 2nd, around 09:00 UTC; it was quarterly. `activityHistory`
-  in `GET /v1/partner/companies/{slug}` gets one point per month from
-  November 2026; the points before that stay quarterly. The window is still
+- The activity score is published every month: calculated on the 1st,
+  published on the 2nd, around 09:00 UTC.
+  `activityHistory` in `GET /v1/partner/companies/{slug}` gets one point per
+  month from November 2026; the points before that keep their quarter labels. The window is still
   the last 8 quarters (24 months back from the latest point), so the array
   grows from up to 8 points to up to 24 as monthly points build up.
 - `ActivityHistoryPoint.month` (new, always present): the month the score was

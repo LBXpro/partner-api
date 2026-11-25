@@ -83,7 +83,7 @@ orders settle for real.
 | Method · path | Returns |
 | --- | --- |
 | `GET /v1/partner/companies` | Paginated company catalog — filter by `search`, `industry`, `cohort`, `inLBX25`, valuation/premium/activity ranges; sort with `sortBy`/`sortOrder`; page with `limit` (≤200) / `offset`. Response carries `total`. |
-| `GET /v1/partner/companies/{slug}` | Company detail with 12-month pricing history and activity history (monthly; quarterly before November 2026) |
+| `GET /v1/partner/companies/{slug}` | Company detail with 12-month pricing history and activity history (one point per month) |
 | `GET /v1/partner/companies/{slug}/charts` | 24-month pricing series (price, implied valuation, secondary premium) + funding rounds |
 | `GET /v1/partner/companies/{slug}/funding` | All funding rounds, each with `investors` (names as recorded by LBX; the lead is not marked; `[]` = no investor data) |
 | `GET /v1/partner/companies/{slug}/daily-prices` | Daily price series (`institutionalPrice`, `retailPrice`, `spreadPercent`, `calculationType`; one point per day, ascending). `from`/`to` are inclusive UTC days (`YYYY-MM-DD`); `limit` keeps the most recent N days (default 365, max 2000) |

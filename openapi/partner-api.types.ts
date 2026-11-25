@@ -423,12 +423,13 @@ export interface components {
     schemas: {
         ActivityHistoryPoint: {
             /**
-             * @description The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. Before November 2026 the history is quarterly; a quarterly score was calculated on the 1st after its quarter, so its month is that one ("Q3 2026" → "2026-10").
+             * @description The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. The score is calculated every month. Key and order points by `month`.
              * @example 2026-11
              */
             month: string;
             /**
-             * @description The quarter the score's data ends in, as the quarterly labels were: "Q4 2026" for the 2026-11 score, "Q3 2026" for 2026-10.
+             * @deprecated
+             * @description Deprecated, will be removed in the next API version: use `month`. A label kept for older clients, the calendar quarter of the month before `month` ("Q4 2026" for 2026-11); several points share it.
              * @example Q4 2026
              */
             quarter: string;
@@ -655,6 +656,10 @@ export interface components {
             displayStatus: "coming_soon" | "active" | "fully_subscribed" | "closed";
         } | null;
         OpportunityActivityPoint: {
+            /**
+             * @deprecated
+             * @description Deprecated with `activityHistory`, will be removed in the next API version.
+             */
             quarter: string;
             activityScore: number | null;
         };
@@ -862,6 +867,10 @@ export interface components {
             legalDocuments: components["schemas"]["OpportunityLegalDocument"][] | null;
             fundingRounds: components["schemas"]["OpportunityFundingRound"][];
             pricingHistory: components["schemas"]["OpportunityPricingPoint"][];
+            /**
+             * @deprecated
+             * @description Deprecated, will be removed in the next API version. The activity score history is the company detail's `activityHistory`: one point per month.
+             */
             activityHistory: components["schemas"]["OpportunityActivityPoint"][];
             metricsUpdatedAt: string | null;
             custodyAssetId: string | null;
