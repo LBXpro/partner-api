@@ -1,5 +1,14 @@
 # Changelog
 
+## v1.8 — 2026-11-26 — investors on funding rounds (additive)
+
+- `FundingRound.investors` (new, always present) in
+  `GET /v1/partner/companies/{slug}/funding`: the names of investors in the
+  round, as recorded by LBX. The lead investor is not marked.
+- An empty list means LBX has no investor data for that round, not that it
+  had no investors. Most rounds carry investor data.
+- `/charts` is unchanged: its `fundingRounds` carry no investors.
+
 ## v1.7 — 2026-11-16 — monthly activity history (additive fields; history changes shape)
 
 - The activity score is now calculated every month (on the 1st) and

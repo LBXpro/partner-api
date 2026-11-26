@@ -576,6 +576,14 @@ export interface components {
             roundSize: number | null;
             valuation: number | null;
             pricePerShare: number | null;
+            /**
+             * @description Names of investors in the round, as recorded by LBX. The lead investor is not marked. An empty list means LBX has no investor data for the round, not that it had no investors.
+             * @example [
+             *       "Thrive Capital",
+             *       "Andreessen Horowitz"
+             *     ]
+             */
+            investors: string[];
         };
         IndexHistoryPoint: {
             date: string;
