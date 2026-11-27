@@ -1751,12 +1751,13 @@
         "properties": {
           "month": {
             "type": "string",
-            "description": "The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. Before November 2026 the history is quarterly; a quarterly score was calculated on the 1st after its quarter, so its month is that one (\"Q3 2026\" → \"2026-10\").",
+            "description": "The month the score was calculated in (on the 1st), YYYY-MM, as ClickHouse and Control Center label it. The score is calculated every month. Key and order points by `month`.",
             "example": "2026-11"
           },
           "quarter": {
             "type": "string",
-            "description": "The quarter the score's data ends in, as the quarterly labels were: \"Q4 2026\" for the 2026-11 score, \"Q3 2026\" for 2026-10.",
+            "deprecated": true,
+            "description": "Deprecated, will be removed in the next API version: use `month`. A label kept for older clients, the calendar quarter of the month before `month` (\"Q4 2026\" for 2026-11); several points share it.",
             "example": "Q4 2026"
           },
           "activityScore": {
@@ -2396,6 +2397,17 @@
               "number",
               "null"
             ]
+          },
+          "investors": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Names of investors in the round, as recorded by LBX. The lead investor is not marked. An empty list means LBX has no investor data for the round, not that it had no investors.",
+            "example": [
+              "Thrive Capital",
+              "Andreessen Horowitz"
+            ]
           }
         },
         "required": [
@@ -2403,7 +2415,8 @@
           "round",
           "roundSize",
           "valuation",
-          "pricePerShare"
+          "pricePerShare",
+          "investors"
         ]
       },
       "IndexHistoryPoint": {
@@ -2786,7 +2799,9 @@
         "type": "object",
         "properties": {
           "quarter": {
-            "type": "string"
+            "type": "string",
+            "deprecated": true,
+            "description": "Deprecated with `activityHistory`, will be removed in the next API version."
           },
           "activityScore": {
             "type": [
@@ -3645,7 +3660,9 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OpportunityActivityPoint"
-            }
+            },
+            "deprecated": true,
+            "description": "Deprecated, will be removed in the next API version. The activity score history is the company detail's `activityHistory`: one point per month."
           },
           "metricsUpdatedAt": {
             "type": [
